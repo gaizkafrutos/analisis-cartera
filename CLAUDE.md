@@ -28,7 +28,7 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0, 1 y 2 hechos.
+Estado: pasos 0, 1, 2 y 3 hechos.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
@@ -131,6 +131,10 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
   - Sin ISIN: clave de empresa = `Ticker + Exchange`; tabla propia para agrupar clases de
     acciones (Alphabet `GOOGL`/`GOOG`). Futuros con peso 0 y nocional ≠ 0.
   - `Exposure Breakdowns` es la referencia oficial para validar el look-through.
+  - `Key Facts` alimenta el universo; `Portfolio Characteristics` publica volatilidad y beta a
+    3 años, útiles para validar el paso 9.
+  - Rarezas conocidas del Excel (`&` sin escapar, `€` corrupto, etiquetas que varían): ver
+    `docs/METODOLOGIA.md`, "Universo de fondos".
 - **BCE**: tipos de cambio (`EXR`) y €STR (`EST`). Citar "Fuente: BCE" e indicar que los datos
   se transforman. La API puede fallar: cachear y marcar "no disponible".
 - **yfinance descartado**: los términos de Yahoo prohíben el acceso automatizado y la
@@ -217,4 +221,8 @@ py -3.12 -m venv .venv
 .venv\Scripts\ruff format .
 .venv\Scripts\python -m pytest -m "not validation"   # lo mismo que la CI
 .venv\Scripts\python -m pytest -m validation         # requiere snapshots reales locales
+.venv\Scripts\python scripts\build_universe.py        # descarga iShares y regenera data/reference
+.venv\Scripts\python scripts\build_universe.py --from-raw data\raw\ishares\AAAA-MM-DD  # sin red
 ```
+Tras regenerar el universo, revisar el diff de `data/reference/` antes de hacer commit (un cambio
+de TER es un cambio real del gestor y se menciona en el commit).

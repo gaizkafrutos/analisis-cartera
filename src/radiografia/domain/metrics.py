@@ -59,6 +59,37 @@ class Interval(BaseModel):
         return self
 
 
+class BreakdownItem(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    label: str
+    weight: float
+    """Fraction of the covered part of the portfolio."""
+
+
+class BreakdownResult(BaseModel):
+    """A distribution (by country, sector, currency...) with the same honesty fields as a metric.
+
+    Item weights are fractions of the covered part and sum to 1; `coverage` says how much of the
+    whole portfolio that part is.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    items: tuple[BreakdownItem, ...]
+    status: MetricStatus
+    coverage: Coverage
+    data_as_of: date | None = None
+    warnings: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def _consistent(self) -> BreakdownResult:
+        if (not self.items) != (self.status is MetricStatus.NOT_AVAILABLE):
+            raise ValueError("items must be empty exactly when the breakdown is not available")
+        return self
+
+
 class MetricResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 

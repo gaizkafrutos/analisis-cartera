@@ -28,7 +28,7 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0 a 6 hechos.
+Estado: pasos 0 a 7 hechos.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
@@ -212,6 +212,8 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 | Resumen | Plantillas deterministas a partir de resultados calculados | tomada |
 | Riesgo histórico | Pesos actuales constantes aplicados al pasado (no es la rentabilidad real del usuario) | tomada |
 | Beta/alpha | Rentabilidades semanales, tipo libre de riesgo €STR (BCE), alpha con intervalo | tomada |
+| Divisa de clases cubiertas | 100 % en la divisa de cobertura (supuesto avisado; las posiciones no permiten calcularla) | tomada |
+| Renta fija en divisa | Se incluye en la exposición por divisa; no en empresas, país ni sector | tomada |
 | Datos reales en git | No: snapshots en `.gitignore`; solo fixtures pequeñas/sintéticas | tomada |
 | Precios/rentabilidades | NAV de iShares + tipos de cambio del BCE; yfinance descartado | tomada |
 | Datos en el despliegue | Pedir autorización a BlackRock; mientras tanto, solo ejecución local | pendiente del autor |

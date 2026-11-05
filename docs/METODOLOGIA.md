@@ -135,4 +135,34 @@ Código: `radiografia.analytics.costs.compute_costs`.
   construir el universo (15 de 15 coinciden, 5-nov-2026). Tests con un ejemplo calculado a mano
   (19,60 € y 0,196 %) y comprobación de que coste anual = TER ponderado × importe cubierto.
 
-(Siguientes métricas a partir del paso 7.)
+### Look-through: país, sector, divisa, concentración y solapamiento
+Código: `radiografia.analytics.lookthrough.compute_lookthrough`.
+
+- **Datos:** posiciones del snapshot local (`data/snapshots/`), con su fecha; pesos por valor de
+  mercado (ver "Posiciones de los fondos").
+- **Fórmula:** peso de X = Σ (peso del ETF en la cartera × peso de X dentro del ETF).
+- **Cobertura:**
+  - País, sector, empresas, concentración y solapamiento: ETFs de renta variable del universo,
+    de réplica física y con posiciones disponibles.
+  - Divisa: además, los ETFs de renta fija con posiciones.
+  - El resto se lista como no cubierto, con su peso y motivo. Los porcentajes se refieren a la
+    parte cubierta, y la métrica pasa a "parcial" si no es el 100 %.
+- **Liquidez y derivados:** un grupo propio en país y sector; en divisa, cada línea en su divisa.
+- **Clases cubiertas (supuesto):** cuentan al 100 % en su divisa de cobertura (divisa de la clase
+  o, si la gestora no la publica, la divisa base). El fichero de posiciones solo muestra los
+  contratos a plazo por su valor neto (en el MSCI World EUR Hedged, unos 31 millones de euros en
+  un fondo de 5.386 millones), no el importe que cubren, así que la cobertura no se puede calcular
+  desde los datos. Se avisa al usuario.
+- **Empresas:** se agrupan las clases de acción por nombre ("ALPHABET CLASS A" y "CLASS C") y
+  país. Fiable dentro de una misma gestora.
+- **Concentración:** peso de las 10 mayores y número efectivo de empresas = 1 ÷ Σ peso²
+  (calculado sobre las empresas, sin la liquidez).
+- **Solapamiento:** por pareja de ETFs, Σ min(peso en A, peso en B), con los pesos de cada fondo.
+  Además, peso y número de empresas presentes en dos o más ETFs de la cartera.
+- **Sin datos:** si no hay snapshot, todo sale como "no disponible"; nunca se estima.
+- **Validación:** una cartera 100 % MSCI World reproduce el desglose por país publicado por la
+  gestora (tolerancia 0,01 puntos); el peso de Apple en una cartera de tres ETFs coincide con la
+  fórmula hecha a mano; la clase cubierta reduce la exposición al dólar exactamente en su peso.
+  Tests en `tests/validation/test_lookthrough_real.py`.
+
+(Siguientes métricas a partir del paso 8.)

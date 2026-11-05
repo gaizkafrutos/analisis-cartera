@@ -1,0 +1,46 @@
+# Validación contra los datos del gestor
+
+Resultados de comparar nuestros cálculos con las cifras que publica iShares. Se regeneran con:
+
+```
+.venv\Scripts\python scripts\build_holdings.py
+.venv\Scripts\python -m pytest -m validation -rsx
+```
+
+## Desglose por sector y por país de cada fondo (paso 6)
+
+**Qué se compara:** el desglose que calculamos a partir del fichero de posiciones de cada ETF
+(`latest-holdings.csv`) frente al que publica la gestora en la hoja `Exposure Breakdowns` de su
+Excel, con la misma fecha.
+
+**Tolerancia:** 0,01 puntos porcentuales por categoría. La gestora publica con dos decimales, así
+que cada cifra suya lleva hasta 0,005 puntos de redondeo; la tolerancia es el doble.
+
+**Resultado (posiciones a 4-nov-2026, descargadas el 6-nov-2026):**
+
+| Resultado | Casos | Detalle |
+|---|---|---|
+| Coinciden | 19 | Diferencia máxima 0,006 puntos en todos: sector de 10 ETFs de renta variable, país de 7 de ellos y sector de 2 de renta fija |
+| Discrepancia explicada | 4 | Ver tabla siguiente |
+| No comparables por fecha | 3 | Geografía de los 3 ETFs de renta fija: publicada a 1 y 8 de octubre, posiciones a 4 de noviembre |
+| Sin desglose publicado | 4 | Geografía de ETFs de un solo país (S&P 500, Nasdaq 100, S&P 500 IT, Japón) |
+
+**Discrepancias:**
+
+| ETF | Desglose | Diferencia máxima | Causa |
+|---|---|---|---|
+| S&P 500 Information Technology (IE00B3WJKG14) | Sector | 38,8 puntos | La gestora desglosa este ETF sectorial por industria GICS (Semiconductors, Software...); el fichero de posiciones solo trae el sector. No son comparables. |
+| MSCI World EUR Hedged (IE00B441G979) | Sector | 0,17 puntos | Su desglose suma 99,40 %: un 0,6 % del fondo no aparece ni en el desglose ni en el fichero de posiciones. Nuestras cifras son proporcionalmente un 0,6 % mayores. |
+| MSCI World EUR Hedged (IE00B441G979) | País | 0,42 puntos | Misma causa (EE. UU.: 71,39 % publicado frente a 71,81 % calculado). |
+| Core Global Aggregate Bond (IE00BDBRDM35) | Sector | 1,84 puntos | La gestora no cuenta su fondo monetario interno (~2 %) como liquidez. |
+
+Cada discrepancia está en `tests/validation/test_issuer_breakdowns.py` como fallo esperado
+(`xfail` estricto): si un día empieza a cuadrar, el test avisa para revisar la explicación.
+
+**Qué significa para el usuario:** la composición por sector y país que mostraremos para los ETFs
+de renta variable reproduce la de la gestora salvo redondeo. En la clase cubierta, las cifras
+pueden diferir en unas décimas.
+
+## Pendiente
+- Paso 8: rentabilidades frente a la hoja `Performance Returns`.
+- Paso 9: volatilidad y beta frente a `Portfolio Characteristics`.

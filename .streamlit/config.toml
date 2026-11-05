@@ -1,0 +1,9 @@
+# Privacy: no usage statistics sent to Streamlit; small uploads only (a portfolio CSV is tiny).
+[browser]
+gatherUsageStats = false
+
+[server]
+maxUploadSize = 1
+
+[client]
+toolbarMode = "minimal"

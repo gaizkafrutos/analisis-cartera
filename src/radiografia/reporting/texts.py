@@ -17,6 +17,19 @@ DISCLAIMER = (
 )
 
 
+APP_TAGLINE = "Qué tienes realmente en tu cartera de ETFs, explicado sin jerga."
+PRIVACY_NOTE = (
+    "Tu cartera no se guarda: se procesa en memoria mientras tienes la página abierta y no se "
+    "envía a ningún servicio externo."
+)
+PARTIAL_COVERAGE_NOTE = (
+    "Calculado sobre el {covered} de tu cartera. {missing} corresponden a posiciones sin datos."
+)
+NOT_AVAILABLE_NOTE = "Ninguna posición de tu cartera está en el universo analizado."
+DATA_DATE_NOTE = "Datos de la gestora consultados el {date}."
+HEDGED_LABEL = "cubierto en divisa"
+
+
 @dataclass(frozen=True)
 class MetricText:
     title: str

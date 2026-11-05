@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
@@ -27,6 +28,15 @@ class AnalysisReport(BaseModel):
 
     portfolio: Portfolio
     costs: CostsResult
+
+
+EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
+EXAMPLE_PORTFOLIO = EXAMPLES_DIR / "cartera_ejemplo.csv"
+
+
+def example_portfolio_csv() -> bytes:
+    """Example portfolio loadable with one click (Spanish Excel CSV format)."""
+    return EXAMPLE_PORTFOLIO.read_bytes()
 
 
 @lru_cache(maxsize=1)

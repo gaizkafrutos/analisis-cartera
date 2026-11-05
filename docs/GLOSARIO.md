@@ -33,6 +33,10 @@ los resultados reales.
 - [Exposición por divisa](#exposición-por-divisa)
 - [Concentración y número efectivo de empresas](#concentración-y-número-efectivo-de-empresas)
 - [Solapamiento](#solapamiento)
+- [Rentabilidad simple y rentabilidad total](#rentabilidad-simple-y-rentabilidad-total)
+- [Rentabilidad en euros](#rentabilidad-en-euros)
+- [Rentabilidad anualizada](#rentabilidad-anualizada)
+- [Rentabilidad simulada con pesos constantes](#rentabilidad-simulada-con-pesos-constantes)
 
 (Pendientes: volatilidad,
 máxima caída, VaR histórico, beta, alpha...)
@@ -228,17 +232,27 @@ El 10 % del dinero (la clase cubierta) genera el 28 % del coste.
 ---
 
 ## Tracking difference
-**En una frase:** cuánto ha rendido el ETF por debajo (o por encima) de su índice en un periodo.
+**En una frase:** cuánto ha rendido el ETF por encima (o por debajo) de su índice en un periodo.
 
 **Qué mide:** el coste real que has soportado: incluye el TER, pero también los costes de
-compraventa, impuestos sobre dividendos dentro del fondo y los ingresos por préstamo de valores,
-que lo compensan en parte. Puede ser menor que el TER.
+compraventa, los impuestos sobre dividendos dentro del fondo y los ingresos por préstamo de
+valores, que lo compensan en parte. Puede ser mejor que el TER.
 
-**Cómo se calcula:** rentabilidad del fondo − rentabilidad del índice, en el mismo periodo y
-divisa.
+**Cómo se calcula:** rentabilidad anual del fondo − rentabilidad anual del índice, mismo periodo y
+divisa. Usamos la media anual a 5 años que publica la gestora.
 
-**Estado en el proyecto:** no implementado. Requiere la serie del índice, que el gestor publica
-solo en parte; se valorará en el paso 8 con los datos de rentabilidad.
+**Ejemplos reales (5 años a 31-oct-2026):** iShares Core MSCI World, TER 0,20 % y tracking
+difference **+0,07 %** al año (ganó a su índice); iShares Core S&P 500, TER 0,07 % y **+0,17 %**.
+Los fondos irlandeses pagan menos impuesto sobre los dividendos de EE. UU. del que supone el
+índice, y prestan acciones a cambio de una comisión.
+
+**Trampas habituales:**
+- Es un dato pasado: no garantiza el futuro.
+- En las clases cubiertas en divisa, la gestora compara con el índice **sin cubrir** y en otra
+  divisa (Global Aggregate cubierto: −13,85 % frente a −20,43 % en 2021-22). Esa diferencia es
+  divisa, no coste: no la mostramos.
+
+**En el código:** `radiografia.analytics.costs.tracking_differences`.
 
 ---
 
@@ -327,3 +341,57 @@ Nasdaq 100, 38,2 %; World y World cubierto, 97,7 % (es el mismo índice); World 
 todo aumenta el peso de EE. UU.
 
 **Trampas habituales:** el solapamiento no es malo en sí; lo que importa es la exposición final.
+
+---
+
+## Rentabilidad simple y rentabilidad total
+**En una frase:** cuánto ha subido o bajado tu dinero en un periodo, contando o no los repartos.
+
+**Cómo se calcula:** r = valor final ÷ valor inicial − 1. Para la **rentabilidad total**, cada
+reparto se suma el día en que el valor liquidativo baja por él (fecha ex-dividendo) y se supone
+reinvertido.
+
+**Ejemplo real:** iShares Core MSCI World, NAV de 126,43 $ (30-sept-2025) a 145,71 $
+(30-sept-2026): **15,25 %**, exactamente lo que publica iShares. Deuda pública euro (distribución)
+en el mismo año: −3,01 % con repartos (lo publicado) frente a −5,49 % mirando solo el NAV.
+
+**Trampa habitual:** en una clase de distribución, el NAV solo infravalora la rentabilidad.
+
+---
+
+## Rentabilidad en euros
+**Cómo se calcula:** NAV en € = NAV en $ ÷ (dólares por euro del BCE). La rentabilidad en euros
+combina la del fondo y la de la divisa: (1 + r$) × (1 + efecto divisa) − 1.
+
+**Ejemplo real:** el MSCI World del ejemplo anterior rindió 15,25 % en dólares y **19,17 % en
+euros**, porque el dólar se revalorizó un 3,4 % frente al euro (1,1741 → 1,1355 $ por €).
+
+**Trampa habitual:** el BCE fija el tipo a las 14:15 y el NAV se calcula al cierre: a diario hay
+ruido; a semanas o meses apenas importa.
+
+---
+
+## Rentabilidad anualizada
+**Cómo se calcula:** (valor final ÷ valor inicial)^(365,25 / días) − 1.
+
+**Trampa habitual:** no es la media de los años. +50 % y luego −50 % da una media de 0 %, pero te
+deja el 75 % del dinero: −13,4 % anual.
+
+---
+
+## Rentabilidad simulada con pesos constantes
+**En una frase:** lo que habría rendido tu reparto actual si lo hubieras mantenido igual cada día.
+
+**Cómo se calcula:** cada día, Σ (peso actual × rentabilidad del ETF). El periodo empieza cuando
+empezó a cotizar el ETF más reciente de la cartera.
+
+**Ejemplos reales (en euros, hasta 4-nov-2026):** 100 % MSCI World desde 2009, 12,73 % anual;
+60 % World + 30 % S&P 500 + 10 % World cubierto desde 2010, 13,32 %; 60 % World + 20 % deuda
+pública + 20 % Global Aggregate desde 2017, 7,56 %.
+
+**Trampas habituales:**
+- No es tu rentabilidad: tú compraste en otras fechas y con otros pesos.
+- Depende mucho del periodo: desde 2009 incluye uno de los mejores ciclos de la bolsa.
+- Rentabilidades pasadas no garantizan rentabilidades futuras.
+
+**En el código:** `radiografia.analytics.returns.compute_returns`.

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from radiografia.analytics import costs, lookthrough
+from radiografia.analytics import costs, lookthrough, returns
 
 DISCLAIMER = (
     "Herramienta informativa. No es asesoramiento de inversión ni una recomendación de comprar, "
@@ -189,5 +189,80 @@ UNCOVERED_TEXTS: dict[str, str] = {
     ),
     lookthrough.UncoveredReason.HOLDINGS_NOT_AVAILABLE: (
         "No hay posiciones disponibles para este ETF."
+    ),
+}
+
+METRIC_TEXTS.update(
+    {
+        costs.TRACKING_DIFFERENCE: MetricText(
+            title="Diferencia con el índice (tracking difference)",
+            one_liner=(
+                "Cuánto ha rendido cada año tu ETF por encima o por debajo del índice que copia. "
+                "Es el coste real que has soportado, no el anunciado."
+            ),
+            how_it_is_computed=(
+                "Rentabilidad anual del fondo menos la de su índice, media de los últimos 5 años, "
+                "según publica la gestora. Negativo: el fondo quedó por detrás del índice."
+            ),
+            limitations=(
+                "Es un dato pasado de la gestora; puede cambiar en el futuro.",
+                "No se muestra para clases cubiertas en divisa: la gestora las compara con el "
+                "índice sin cubrir en otra divisa.",
+            ),
+        ),
+        returns.ANNUALISED_RETURN: MetricText(
+            title="Rentabilidad anual histórica (simulada)",
+            one_liner=(
+                "Lo que habría rendido cada año tu reparto actual en el periodo indicado, en "
+                "euros. No es tu rentabilidad real ni una previsión."
+            ),
+            how_it_is_computed=(
+                "Valor liquidativo diario de cada ETF con sus repartos reinvertidos, pasado a "
+                "euros con los tipos del BCE, combinado con tus pesos actuales y anualizado."
+            ),
+            limitations=(
+                "Supone que mantienes los pesos actuales todos los días del periodo.",
+                "El periodo empieza cuando empezó a cotizar el ETF más reciente de tu cartera.",
+                "Rentabilidades pasadas no garantizan rentabilidades futuras.",
+            ),
+        ),
+    }
+)
+
+WARNING_TEXTS.update(
+    {
+        costs.WARNING_TD_IS_PAST_AND_ISSUER_DATA: (
+            "Dato publicado por la gestora sobre los últimos 5 años: describe el pasado."
+        ),
+        costs.WARNING_TD_NOT_FOR_HEDGED: (
+            "Las clases cubiertas en divisa no tienen este dato: la gestora las compara con el "
+            "índice sin cubrir, así que la diferencia sería sobre todo de divisa."
+        ),
+        returns.WARNING_PAST_PERFORMANCE: (
+            "Rentabilidades pasadas no garantizan rentabilidades futuras."
+        ),
+        returns.WARNING_CONSTANT_WEIGHTS: (
+            "Es una simulación: aplica tus pesos de hoy a todo el periodo, como si volvieras a "
+            "ellos cada día. Tu rentabilidad real depende de cuándo y cuánto compraste."
+        ),
+        returns.WARNING_FX_TIMING: (
+            "Los valores en otras divisas se pasan a euros con el tipo del BCE (14:15), que no "
+            "coincide con la hora de cálculo del valor liquidativo: añade algo de ruido diario."
+        ),
+        returns.WARNING_SHORT_HISTORY: (
+            "El periodo es de menos de 3 años: la cifra depende mucho de lo que pasó en ese "
+            "periodo concreto."
+        ),
+        returns.WARNING_TOO_SHORT_TO_ANNUALISE: (
+            "Hay menos de un año de historia común: no se anualiza."
+        ),
+    }
+)
+
+RETURNS_UNCOVERED_TEXTS: dict[str, str] = {
+    returns.ReturnsUncoveredReason.OUTSIDE_UNIVERSE: "No está en el universo analizado.",
+    returns.ReturnsUncoveredReason.NAV_NOT_AVAILABLE: "No hay histórico de valor liquidativo.",
+    returns.ReturnsUncoveredReason.DISTRIBUTIONS_NOT_AVAILABLE: (
+        "ETF de distribución sin datos de repartos: su rentabilidad total no se puede calcular."
     ),
 }

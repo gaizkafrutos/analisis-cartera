@@ -41,6 +41,23 @@ Cada discrepancia está en `tests/validation/test_issuer_breakdowns.py` como fal
 de renta variable reproduce la de la gestora salvo redondeo. En la clase cubierta, las cifras
 pueden diferir en unas décimas.
 
+## Rentabilidades anuales de cada fondo (paso 8)
+
+**Qué se compara:** la rentabilidad total de cada uno de los 5 últimos años (de 30 de
+septiembre a 30 de septiembre) calculada con el NAV y los repartos, frente a la que publica la
+gestora en la hoja `Performance Returns`, en la divisa del NAV (sin conversión).
+
+**Tolerancia (por fondo y año, derivada del redondeo de la gestora):** el NAV se publica con 2
+decimales (hasta 0,005 de error en cada extremo del año) y la rentabilidad con 2 decimales en %
+(0,005 puntos). Tolerancia = (0,005/NAV inicial + 0,005/NAV final) × (1 + |r|) + 0,005 puntos. Un
+ETF con NAV de 5 € tiene más margen que uno de 150 $.
+
+**Resultado (datos a 4-nov-2026):** **15 de 15 ETFs coinciden** en los 5 años. La diferencia
+máxima es de 0,015 puntos en los ETFs con NAV alto y de hasta 0,12 puntos en los de NAV bajo
+(Global Aggregate, ~5 €; World Small Cap, ~7 $), dentro de su tolerancia.
+
+**Repartos:** en la deuda pública euro, 2025-26, la rentabilidad con repartos (−3,01 %) coincide
+con la publicada; solo con el NAV saldría −5,49 %. Test incluido.
+
 ## Pendiente
-- Paso 8: rentabilidades frente a la hoja `Performance Returns`.
 - Paso 9: volatilidad y beta frente a `Portfolio Characteristics`.

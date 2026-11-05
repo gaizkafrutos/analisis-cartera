@@ -48,6 +48,44 @@ su número de fila. Una cartera parcial tendría pesos incorrectos.
 detecta todos los intercambios de caracteres. El código de país se comprueba como dos letras, no
 contra la lista ISO 3166.
 
+## Universo de fondos
+Código: `scripts/build_universe.py`, `radiografia.data.sources.ishares`, `radiografia.data.universe`.
+
+**Qué contiene:** 15 ETFs UCITS de iShares (12 de renta variable, 3 de renta fija), elegidos para
+cubrir las carteras de ejemplo: núcleo global, regiones, un sector, factores, una clase cubierta
+a euros y renta fija. Lista y motivo de cada uno en `data/reference/universe_seed.csv`.
+
+**Cómo se construye:** para cada ETF se descargan la ficha web y el Excel oficial del gestor
+(sitio británico, en inglés). Del Excel (hoja `Key Facts`) salen ISIN, TER, clase de activo,
+índice, divisas, uso de los ingresos, domicilio, estructura y método de réplica, y fechas de
+lanzamiento. De la ficha web salen el nombre, si la clase está cubierta en divisa y la tabla de
+cotizaciones (bolsa, ticker, divisa). Resultado: `data/reference/universe.csv` y `listings.csv`,
+con URL de origen y fecha de descarga por fondo. Los ficheros descargados quedan en `data/raw/`
+(fuera de git).
+
+**Comprobaciones:** el TER de los 15 coincide con el que publica el buscador de productos de
+iShares (otra fuente del mismo gestor) el 5-nov-2026. Los tests de `tests/data/` verifican sobre
+los ficheros versionados que todos los ISIN son válidos, que cada fondo tiene cotización en
+euros, que ningún ticker es ambiguo dentro del universo y que los tickers habituales resuelven.
+
+**Problemas encontrados en los datos del gestor y cómo se tratan:**
+- El Excel no es XML válido cuando un nombre contiene `&` ("S&P 500"). Se escapa el `&` antes de
+  leer: reparación de formato, sin cambio de contenido.
+- El Excel sustituye `€` por un carácter inválido (U+FFFD). El nombre se toma de la ficha web,
+  donde aparece bien.
+- Las etiquetas varían entre fondos ("Fund Base Currency" / "Base Currency", "Share Class Launch
+  Date" / "Inception Date"). Se aceptan ambas.
+- Un fondo (MSCI World EUR Hedged) no publica divisa de la clase ni fecha de lanzamiento de la
+  clase: quedan vacías ("no disponible"), no se deducen.
+- No hay un campo de cobertura de divisa. Se marca como cubierta si "Hedged" aparece como
+  segmento del título de la ficha (`... | AGGH | Hedged`) o como palabra del nombre
+  (`MSCI World EUR Hedged`). Comprobado en los dos ETFs cubiertos del universo.
+- Un valor inesperado (estructura distinta de Physical/Synthetic, uso de ingresos desconocido,
+  TER fuera de 0-3 %) detiene la construcción en lugar de adivinar.
+
+**Limitaciones:** el universo no incluye fondos indexados no cotizados ni ETFs de otras gestoras.
+Los tickers solo se resuelven si aparecen en la tabla de cotizaciones de iShares.
+
 ## Por métrica
 Cada métrica tendrá: datos de entrada, fórmula, frecuencia y ventana, anualización (si aplica),
 supuestos, limitaciones, cómo se valida contra el gestor y tolerancia aceptada.

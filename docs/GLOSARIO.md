@@ -26,8 +26,10 @@ los resultados reales.
 - [Cobertura de divisa (clase "Hedged")](#cobertura-de-divisa-clase-hedged)
 - [Réplica física, sintética y optimizada](#réplica-física-sintética-y-optimizada)
 - [Domicilio del fondo](#domicilio-del-fondo)
+- [TER y coste anual](#ter-y-coste-anual)
+- [Tracking difference](#tracking-difference)
 
-(Pendientes: TER, coste anual, look-through, exposición por divisa, solapamiento, volatilidad,
+(Pendientes: look-through, exposición por divisa, solapamiento, volatilidad,
 máxima caída, VaR histórico, beta, alpha...)
 
 ---
@@ -175,3 +177,60 @@ ejemplo, la retención que sufre sobre los dividendos de empresas de EE. UU.) y 
 invierte en EE. UU.
 
 **En el código:** `Fund.domicile`.
+
+---
+
+## TER y coste anual
+**En una frase:** el porcentaje de tu dinero que el ETF se cobra cada año por gestionarse
+(*Total Expense Ratio*; en el documento de datos fundamentales, "gastos corrientes").
+
+**Qué mide:** el coste explícito de tener el fondo. No llega factura: se descuenta poco a poco,
+cada día, del valor liquidativo.
+
+**Cómo se calcula para una cartera:**
+- Coste anual (€) = Σ importe de cada posición × su TER.
+- TER ponderado = coste anual ÷ valor de la parte con dato (media de los TER ponderada por peso).
+
+Ejemplo con datos del universo (5-nov-2026), 10.000 €:
+
+| Posición | Importe | TER | Coste/año |
+|---|---|---|---|
+| iShares Core MSCI World | 6.000 € | 0,20 % | 12,00 € |
+| iShares Core S&P 500 | 3.000 € | 0,07 % | 2,10 € |
+| iShares MSCI World EUR Hedged | 1.000 € | 0,55 % | 5,50 € |
+| **Total** | 10.000 € | **0,196 %** | **19,60 €** |
+
+El 10 % del dinero (la clase cubierta) genera el 28 % del coste.
+
+**Qué decisión ayuda a tomar:** saber cuánto pagas al año y qué posición concentra el coste.
+
+**Trampas habituales:**
+- **El TER no es el coste total:** no incluye costes de compraventa dentro del fondo, la
+  horquilla en bolsa, comisiones del bróker o de cambio de divisa, ni el coste implícito de la
+  cobertura de divisa. La medida más fiel es el [tracking difference](#tracking-difference).
+- **Cambiar de ETF para ahorrar TER puede salir caro:** en España vender un ETF tributa por la
+  plusvalía, porque los ETFs, en general, no tienen el régimen de traspasos de los fondos. Los
+  impuestos pueden superar el ahorro. Esta herramienta muestra el coste; no sugiere cambios.
+- **Cambia con el tiempo:** cada TER lleva la fecha en que se consultó.
+- **Una diferencia pequeña rara vez es la decisión importante:** el reparto entre acciones y
+  renta fija o entre regiones pesa mucho más que 0,1 puntos de comisión.
+- **No se proyecta a 10 o 20 años:** hacerlo exige suponer una rentabilidad futura.
+
+**En el código:** `radiografia.analytics.costs.compute_costs`.
+
+**Relacionado:** cobertura de divisa, tracking difference.
+
+---
+
+## Tracking difference
+**En una frase:** cuánto ha rendido el ETF por debajo (o por encima) de su índice en un periodo.
+
+**Qué mide:** el coste real que has soportado: incluye el TER, pero también los costes de
+compraventa, impuestos sobre dividendos dentro del fondo y los ingresos por préstamo de valores,
+que lo compensan en parte. Puede ser menor que el TER.
+
+**Cómo se calcula:** rentabilidad del fondo − rentabilidad del índice, en el mismo periodo y
+divisa.
+
+**Estado en el proyecto:** no implementado. Requiere la serie del índice, que el gestor publica
+solo en parte; se valorará en el paso 8 con los datos de rentabilidad.

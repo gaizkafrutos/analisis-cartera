@@ -90,4 +90,20 @@ Los tickers solo se resuelven si aparecen en la tabla de cotizaciones de iShares
 Cada métrica tendrá: datos de entrada, fórmula, frecuencia y ventana, anualización (si aplica),
 supuestos, limitaciones, cómo se valida contra el gestor y tolerancia aceptada.
 
-(Se irá rellenando a partir del paso 4: costes.)
+### Costes: TER ponderado y coste anual
+Código: `radiografia.analytics.costs.compute_costs`.
+
+- **Datos:** TER de cada ETF de `data/reference/universe.csv` (publicado por la gestora, con fecha
+  de consulta) e importes actuales de la cartera.
+- **Fórmulas:** coste anual = Σ importe × TER; TER ponderado = coste anual ÷ importe cubierto.
+- **Cobertura:** solo las posiciones con TER conocido. Las demás se muestran sin dato y la
+  métrica pasa a "parcial"; su coste nunca se supone cero ni se reparte entre las demás.
+- **Fecha del dato:** la más antigua de los TER usados.
+- **Avisos:** el TER no es el coste total (siempre); la cobertura de divisa tiene un coste
+  implícito no incluido (si hay clases cubiertas); cobertura parcial (si aplica).
+- **Sin proyección temporal:** el coste es el de hoy sobre el valor de hoy.
+- **Validación:** el TER de cada ETF se contrasta con el buscador de productos del gestor al
+  construir el universo (15 de 15 coinciden, 5-nov-2026). Tests con un ejemplo calculado a mano
+  (19,60 € y 0,196 %) y comprobación de que coste anual = TER ponderado × importe cubierto.
+
+(Siguientes métricas a partir del paso 7.)

@@ -86,6 +86,35 @@ euros, que ningún ticker es ambiguo dentro del universo y que los tickers habit
 **Limitaciones:** el universo no incluye fondos indexados no cotizados ni ETFs de otras gestoras.
 Los tickers solo se resuelven si aparecen en la tabla de cotizaciones de iShares.
 
+## Posiciones de los fondos
+Código: `scripts/build_holdings.py`, `radiografia.data.sources.ishares_holdings`,
+`radiografia.data.snapshots`, `radiografia.analytics.fund_breakdown`.
+
+**Fuente:** el fichero `latest-holdings.csv` de cada ETF (enlazado desde su ficha). Se usa el CSV y
+no la hoja `Holdings` del Excel porque solo el CSV trae país (`Location`) y bolsa. Se guardan todas
+las líneas, liquidez y derivados incluidos, en `data/snapshots/<fecha>/` (fuera de git), junto con
+los desgloses publicados por la gestora y la fecha de las posiciones de cada fondo.
+
+**Pesos:** valor de mercado de cada línea ÷ suma del valor de mercado del fondo. No se usa la
+columna de peso de la gestora porque está redondeada a 0,01 %: en un fondo con miles de posiciones
+pequeñas casi todas aparecen como 0,00 % y la columna suma mucho menos del 100 % (76 % en el
+Global Aggregate Bond el 4-nov-2026).
+
+**Liquidez y derivados:** efectivo, fondos monetarios, garantías, divisas, futuros y contratos a
+plazo forman un único grupo, "Cash and/or Derivatives", como en los desgloses de la gestora.
+
+**Limitaciones:**
+- Los futuros valen 0 a precio de mercado; la exposición que añaden (su nocional) no se cuenta.
+  Suelen ser pequeños: sirven para mantener invertida la liquidez.
+- En las clases cubiertas, los contratos a plazo de divisa aparecen como líneas del fichero. Su
+  efecto sobre la exposición a divisa se tratará en el paso 7.
+- El país es el que asigna la gestora a cada empresa (sobre todo su domicilio), no dónde vende.
+- En renta fija, el desglose geográfico de la gestora se publica con un mes de retraso respecto a
+  las posiciones.
+
+**Validación:** ver `docs/VALIDACION.md`. Coinciden 19 de 19 comparaciones válidas sin
+discrepancia conocida, con una diferencia máxima de 0,006 puntos; 4 discrepancias explicadas.
+
 ## Por métrica
 Cada métrica tendrá: datos de entrada, fórmula, frecuencia y ventana, anualización (si aplica),
 supuestos, limitaciones, cómo se valida contra el gestor y tolerancia aceptada.

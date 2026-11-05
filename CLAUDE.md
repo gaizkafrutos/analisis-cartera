@@ -28,7 +28,7 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0 a 5 hechos.
+Estado: pasos 0 a 6 hechos.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
@@ -133,6 +133,9 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
   - `Exposure Breakdowns` es la referencia oficial para validar el look-through.
   - `Key Facts` alimenta el universo; `Portfolio Characteristics` publica volatilidad y beta a
     3 años, útiles para validar el paso 9.
+  - Posiciones: `latest-holdings.csv` (trae país y bolsa; la hoja `Holdings` del Excel no).
+    Pesos por valor de mercado: la columna de peso publicada está redondeada a 0,01 %.
+  - Resultados de la validación y discrepancias conocidas: `docs/VALIDACION.md`.
   - Rarezas conocidas del Excel (`&` sin escapar, `€` corrupto, etiquetas que varían): ver
     `docs/METODOLOGIA.md`, "Universo de fondos".
 - **BCE**: tipos de cambio (`EXR`) y €STR (`EST`). Citar "Fuente: BCE" e indicar que los datos
@@ -229,6 +232,8 @@ py -3.12 -m venv .venv
 .venv\Scripts\streamlit run app\streamlit_app.py      # app en http://localhost:8501
 .venv\Scripts\python scripts\build_universe.py        # descarga iShares y regenera data/reference
 .venv\Scripts\python scripts\build_universe.py --from-raw data\raw\ishares\AAAA-MM-DD  # sin red
+.venv\Scripts\python scripts\build_holdings.py        # posiciones + desgloses -> data/snapshots/
+.venv\Scripts\python -m pytest -m validation -rsx     # validación contra el gestor (VALIDACION.md)
 ```
 Tras regenerar el universo, revisar el diff de `data/reference/` antes de hacer commit (un cambio
 de TER es un cambio real del gestor y se menciona en el commit).

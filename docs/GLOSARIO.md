@@ -28,8 +28,13 @@ los resultados reales.
 - [Domicilio del fondo](#domicilio-del-fondo)
 - [TER y coste anual](#ter-y-coste-anual)
 - [Tracking difference](#tracking-difference)
+- [Look-through](#look-through)
+- [Exposición por país y por sector](#exposición-por-país-y-por-sector)
+- [Exposición por divisa](#exposición-por-divisa)
+- [Concentración y número efectivo de empresas](#concentración-y-número-efectivo-de-empresas)
+- [Solapamiento](#solapamiento)
 
-(Pendientes: look-through, exposición por divisa, solapamiento, volatilidad,
+(Pendientes: volatilidad,
 máxima caída, VaR histórico, beta, alpha...)
 
 ---
@@ -234,3 +239,91 @@ divisa.
 
 **Estado en el proyecto:** no implementado. Requiere la serie del índice, que el gestor publica
 solo en parte; se valorará en el paso 8 con los datos de rentabilidad.
+
+---
+
+## Look-through
+**En una frase:** "mirar a través" de cada ETF para ver qué empresas tienes de verdad.
+
+**Cómo se calcula:** peso de X en tu cartera = Σ (peso del ETF en tu cartera × peso de X dentro
+del ETF), donde X es una empresa, un país, un sector o una divisa.
+
+Ejemplo real (posiciones a 4-nov-2026), cartera 60 % MSCI World + 30 % S&P 500 + 10 % MSCI World
+cubierto: Apple = 60 % × 5,63 % + 30 % × 7,7 % + 10 % × 5,6 % ≈ **6,25 %**. Uno de cada 16 euros.
+
+**Qué decisión ayuda a tomar:** comprobar si tu exposición a una empresa, país o sector es la que
+crees antes de añadir otro ETF.
+
+**Trampas habituales:**
+- Es una foto: las posiciones tienen fecha y los fondos se rebalancean.
+- Una empresa puede aparecer con varias clases de acción (Alphabet A y C); hay que agruparlas.
+- No sirve para ETFs sintéticos: su lista de posiciones es colateral, no exposición.
+- En renta fija no tiene sentido hablar de "empresas en las que más tienes" del mismo modo; aquí
+  solo se usa para la divisa.
+
+**En el código:** `radiografia.analytics.lookthrough.compute_lookthrough`.
+
+---
+
+## Exposición por país y por sector
+**En una frase:** el reparto de tu dinero por países y sectores económicos tras abrir los ETFs.
+
+**Ejemplo real:** en la cartera anterior, EE. UU. pesa el **80,7 %**, más que en el MSCI World
+(72,5 %) porque el S&P 500 añade más EE. UU.
+
+**Qué decisión ayuda a tomar:** ver si tu reparto es el que querías o el que te ha salido.
+
+**Trampas habituales:** el país es el domicilio que asigna la gestora, no de dónde vienen los
+ingresos (Nestlé cuenta como Suiza). La liquidez y los derivados forman su propio grupo.
+
+---
+
+## Exposición por divisa
+Completa la entrada [Divisa de la clase, de cotización y de exposición](#divisa-de-la-clase-de-cotización-y-de-exposición).
+
+**Cómo se calcula:** suma por la divisa en que cotiza cada posición dentro de los ETFs. Las clases
+cubiertas cuentan al 100 % en su divisa de cobertura (supuesto: ver metodología).
+
+**Ejemplo real:** en la cartera anterior el dólar pesa un **74 %**; sin la clase cubierta, el 81 %.
+
+**Trampas habituales:** la divisa en que cotiza una empresa no es la de sus ingresos; comprar en
+euros no elimina el riesgo de divisa.
+
+---
+
+## Concentración y número efectivo de empresas
+**En una frase:** cuánto depende tu cartera de pocas empresas.
+
+**Cómo se calcula:**
+- Peso de las 10 mayores empresas.
+- Número efectivo = 1 ÷ Σ peso² (inverso del índice de Herfindahl-Hirschman, HHI). Si tienes N
+  empresas a partes iguales, sale N; cuanto más desigual, menor.
+
+Ejemplo: tres empresas con 50 %, 25 % y 25 % → 1 ÷ (0,25 + 0,0625 + 0,0625) = **2,67**: se comporta
+como si tuvieras menos de tres a partes iguales.
+
+**Ejemplo real:** la cartera anterior tiene 1.300 empresas, pero su número efectivo es **67,5**; las
+10 mayores suman el 31,1 %.
+
+**Qué decisión ayuda a tomar:** saber si "tengo 1.300 empresas" significa de verdad diversificación.
+
+**Trampas habituales:** describe, no juzga: los índices ponderados por tamaño ya están concentrados.
+No mide riesgo (no tiene en cuenta cómo se mueven las empresas entre sí).
+
+---
+
+## Solapamiento
+**En una frase:** cuánto de un ETF ya lo tienes en otro.
+
+**Cómo se calcula:** para cada pareja de ETFs, Σ por empresa del menor de sus dos pesos.
+
+Ejemplo: A tiene 50 % Apple y 50 % Microsoft; B tiene 30 % Apple y 70 % Nestlé → solapamiento =
+min(50, 30) + min(50, 0) + min(0, 70) = **30 %**.
+
+**Ejemplos reales (4-nov-2026):** World y S&P 500, 70,7 %; S&P 500 y Nasdaq 100, 52,8 %; World y
+Nasdaq 100, 38,2 %; World y World cubierto, 97,7 % (es el mismo índice); World y Emergentes, 0 %.
+
+**Qué decisión ayuda a tomar:** entender que añadir un S&P 500 a un World no diversifica: sobre
+todo aumenta el peso de EE. UU.
+
+**Trampas habituales:** el solapamiento no es malo en sí; lo que importa es la exposición final.

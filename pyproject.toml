@@ -39,3 +39,5 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "PD", "NPY", "RUF"]
+# The multiplication sign is intended in Spanish user-facing formulas.
+allowed-confusables = ["×"]

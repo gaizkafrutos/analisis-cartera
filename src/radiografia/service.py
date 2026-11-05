@@ -16,6 +16,8 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
 from radiografia.analytics.costs import CostsResult, compute_costs
+from radiografia.analytics.lookthrough import LookThroughResult, compute_lookthrough
+from radiografia.data.snapshots import Snapshot, latest_snapshot_dir, read_snapshot
 from radiografia.data.universe import Universe, load_universe
 from radiografia.domain.portfolio import Portfolio, PortfolioInputResult, RawPosition
 from radiografia.input import build_portfolio, portfolio_from_csv
@@ -28,6 +30,7 @@ class AnalysisReport(BaseModel):
 
     portfolio: Portfolio
     costs: CostsResult
+    lookthrough: LookThroughResult
 
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
@@ -45,6 +48,13 @@ def get_universe() -> Universe:
     return load_universe()
 
 
+@lru_cache(maxsize=1)
+def get_snapshot() -> Snapshot | None:
+    """Latest local holdings snapshot, or None (look-through then shows as not available)."""
+    directory = latest_snapshot_dir()
+    return read_snapshot(directory) if directory is not None else None
+
+
 def read_portfolio_csv(data: bytes | str, universe: Universe | None = None) -> PortfolioInputResult:
     return portfolio_from_csv(data, (universe or get_universe()).index())
 
@@ -55,6 +65,24 @@ def read_portfolio_rows(
     return build_portfolio(rows, (universe or get_universe()).index())
 
 
-def analyze(portfolio: Portfolio, universe: Universe | None = None) -> AnalysisReport:
+_LATEST = object()
+
+
+def analyze(
+    portfolio: Portfolio,
+    universe: Universe | None = None,
+    snapshot: Snapshot | object | None = _LATEST,
+) -> AnalysisReport:
+    """Run every metric. `snapshot` defaults to the latest local one; pass None to analyse
+    without holdings (look-through then reports not available)."""
     universe = universe or get_universe()
-    return AnalysisReport(portfolio=portfolio, costs=compute_costs(portfolio, universe.funds))
+    snapshot = get_snapshot() if snapshot is _LATEST else snapshot
+    holdings, as_of = None, {}
+    if snapshot is not None:
+        holdings = snapshot.holdings
+        as_of = {row.isin: row.holdings_as_of.date() for row in snapshot.manifest.itertuples()}
+    return AnalysisReport(
+        portfolio=portfolio,
+        costs=compute_costs(portfolio, universe.funds),
+        lookthrough=compute_lookthrough(portfolio, universe.funds, holdings, as_of),
+    )

@@ -32,3 +32,15 @@ def test_form_rows_with_a_fund_outside_the_universe():
     assert report.costs.weighted_ter.value == pytest.approx(0.0020)
     assert report.costs.annual_cost.value == pytest.approx(18.0)
     assert report.costs.weighted_ter.coverage.covered_weight == pytest.approx(0.9)
+
+
+def test_without_snapshot_lookthrough_is_not_available_but_costs_work():
+    # This is what CI sees: no local holdings snapshot (it is git-ignored).
+    from radiografia.domain.portfolio import RawPosition
+
+    rows = [RawPosition(identifier="EUNL", amount_eur=1000)]
+    report = service.analyze(service.read_portfolio_rows(rows).portfolio, snapshot=None)
+    assert report.costs.weighted_ter.status is MetricStatus.AVAILABLE
+    assert report.lookthrough.geography.status is MetricStatus.NOT_AVAILABLE
+    assert report.lookthrough.currency.items == ()
+    assert report.model_dump_json()

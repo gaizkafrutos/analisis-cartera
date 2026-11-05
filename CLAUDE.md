@@ -155,8 +155,8 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
   datos e ingesta offline se mantienen siempre.
 - Descartado cualquier MCP o herramienta que consulte Yahoo/yfinance (ver
   `docs/FUENTES_Y_LICENCIAS.md`).
-- Pendiente: al terminar el paso 4 (costes), proponer una skill propia `nueva-metrica` con el
-  flujo de alta de una métrica. No antes.
+- Skill propia `nueva-metrica` (`.claude/skills/nueva-metrica/SKILL.md`): úsala para cada
+  métrica nueva. Solo ordena los pasos; las reglas siguen siendo las de este archivo.
 
 ## Privacidad
 - Las carteras de usuario **no se guardan**: ni en disco, ni en base de datos, ni en logs, ni en

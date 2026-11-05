@@ -28,7 +28,7 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0, 1, 2 y 3 hechos.
+Estado: pasos 0 a 4 hechos.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
@@ -155,8 +155,8 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
   datos e ingesta offline se mantienen siempre.
 - Descartado cualquier MCP o herramienta que consulte Yahoo/yfinance (ver
   `docs/FUENTES_Y_LICENCIAS.md`).
-- Pendiente: al terminar el paso 4 (costes), proponer una skill propia `nueva-metrica` con el
-  flujo de alta de una métrica. No antes.
+- Skill propia `nueva-metrica` (`.claude/skills/nueva-metrica/SKILL.md`): úsala para cada
+  métrica nueva. Solo ordena los pasos; las reglas siguen siendo las de este archivo.
 
 ## Privacidad
 - Las carteras de usuario **no se guardan**: ni en disco, ni en base de datos, ni en logs, ni en

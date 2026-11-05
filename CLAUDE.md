@@ -28,6 +28,8 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
+Estado: pasos 0, 1 y 2 hechos.
+
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
      ¿se pueden mostrar sus datos (en bruto o agregados) en una web pública?
@@ -67,7 +69,9 @@ No implementar 2-4 todavía, pero no cerrar puertas (ver "Puntos de extensión")
 fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados con fecha (fuera de git)
                                                          │
                        src/radiografia/                  ▼
-   domain/      modelos (pydantic): Portfolio, Position, Fund, MetricResult, AnalysisReport
+   domain/      modelos (pydantic): Portfolio, Position, Fund, MetricResult, AnalysisReport;
+                ISIN; UniverseIndex
+   input/       lectura y validación de la cartera del usuario (CSV/formulario), pura, sin I/O
    data/        adaptadores por fuente + repositorio que lee snapshots
    analytics/   cálculos puros (pandas/numpy), sin I/O
    reporting/   textos, explicaciones, avisos y resumen en lenguaje claro

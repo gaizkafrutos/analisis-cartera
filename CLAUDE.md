@@ -28,7 +28,7 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0 a 4 hechos.
+Estado: pasos 0 a 5 hechos.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
@@ -175,6 +175,11 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
   reales (fuera de git), se marcan y se saltan cuando no están disponibles.
 - Tests de extremo a extremo con las carteras de ejemplo de `examples/`.
 - Los tests no dependen de la red.
+- La interfaz se prueba sin navegador con `streamlit.testing.v1.AppTest` (`tests/e2e/test_app.py`).
+  AppTest no puede escribir en `st.data_editor`: el formulario se prueba fijando
+  `session_state["form_rows"]`, que es lo que guarda el botón "Analizar".
+- Streamlit solo recarga el script de la app: tras cambiar el paquete `radiografia`, reiniciar el
+  servidor.
 
 ## Convenciones
 - Python 3.12, `pyproject.toml` estándar, layout `src/`, entorno `.venv` con `pip` (compatible
@@ -221,6 +226,7 @@ py -3.12 -m venv .venv
 .venv\Scripts\ruff format .
 .venv\Scripts\python -m pytest -m "not validation"   # lo mismo que la CI
 .venv\Scripts\python -m pytest -m validation         # requiere snapshots reales locales
+.venv\Scripts\streamlit run app\streamlit_app.py      # app en http://localhost:8501
 .venv\Scripts\python scripts\build_universe.py        # descarga iShares y regenera data/reference
 .venv\Scripts\python scripts\build_universe.py --from-raw data\raw\ishares\AAAA-MM-DD  # sin red
 ```

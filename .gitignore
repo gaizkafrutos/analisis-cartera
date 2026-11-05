@@ -22,3 +22,6 @@ build/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local preview configuration
+.claude/launch.json

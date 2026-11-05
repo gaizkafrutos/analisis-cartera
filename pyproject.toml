@@ -4,12 +4,12 @@ version = "0.1.0"
 description = "Informative look-through analysis of retail ETF portfolios (UCITS, EUR). Not investment advice."
 readme = "README.md"
 requires-python = ">=3.12"
-# Runtime dependencies are added when the step that needs them starts
-# (streamlit/plotly at step 5, an HTTP client at step 6).
+# Runtime dependencies are added when the step that needs them starts.
 dependencies = [
     "numpy>=2.0",
     "pandas>=2.2",
     "pydantic>=2.7",
+    "streamlit>=1.39",
 ]
 
 [project.optional-dependencies]

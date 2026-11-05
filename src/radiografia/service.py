@@ -15,8 +15,9 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from radiografia.analytics.costs import CostsResult, compute_costs
+from radiografia.analytics.costs import CostsResult, compute_costs, tracking_differences
 from radiografia.analytics.lookthrough import LookThroughResult, compute_lookthrough
+from radiografia.analytics.returns import ReturnsResult, compute_returns
 from radiografia.data.snapshots import Snapshot, latest_snapshot_dir, read_snapshot
 from radiografia.data.universe import Universe, load_universe
 from radiografia.domain.portfolio import Portfolio, PortfolioInputResult, RawPosition
@@ -31,6 +32,7 @@ class AnalysisReport(BaseModel):
     portfolio: Portfolio
     costs: CostsResult
     lookthrough: LookThroughResult
+    returns: ReturnsResult
 
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
@@ -78,11 +80,18 @@ def analyze(
     universe = universe or get_universe()
     snapshot = get_snapshot() if snapshot is _LATEST else snapshot
     holdings, as_of = None, {}
+    navs = performance = distributions = fx = None
     if snapshot is not None:
         holdings = snapshot.holdings
         as_of = {row.isin: row.holdings_as_of.date() for row in snapshot.manifest.itertuples()}
+        navs, performance = snapshot.navs, snapshot.performance
+        distributions, fx = snapshot.distributions, snapshot.fx
+    returns, _series = compute_returns(portfolio, universe.funds, navs, distributions, fx)
     return AnalysisReport(
         portfolio=portfolio,
-        costs=compute_costs(portfolio, universe.funds),
+        costs=compute_costs(
+            portfolio, universe.funds, tracking_differences(performance, universe.funds)
+        ),
         lookthrough=compute_lookthrough(portfolio, universe.funds, holdings, as_of),
+        returns=returns,
     )

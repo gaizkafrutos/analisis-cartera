@@ -28,7 +28,7 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0 a 7 hechos.
+Estado: pasos 0 a 8 hechos.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
@@ -213,6 +213,8 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 | Riesgo histórico | Pesos actuales constantes aplicados al pasado (no es la rentabilidad real del usuario) | tomada |
 | Beta/alpha | Rentabilidades semanales, tipo libre de riesgo €STR (BCE), alpha con intervalo | tomada |
 | Divisa de clases cubiertas | 100 % en la divisa de cobertura (supuesto avisado; las posiciones no permiten calcularla) | tomada |
+| Tracking difference | Dato de la gestora a 5 años; no se muestra en clases cubiertas | tomada |
+| Rentabilidad histórica | Solo como contexto en riesgo, simulada, con aviso; nunca proyectada | tomada |
 | Renta fija en divisa | Se incluye en la exposición por divisa; no en empresas, país ni sector | tomada |
 | Datos reales en git | No: snapshots en `.gitignore`; solo fixtures pequeñas/sintéticas | tomada |
 | Precios/rentabilidades | NAV de iShares + tipos de cambio del BCE; yfinance descartado | tomada |
@@ -235,6 +237,7 @@ py -3.12 -m venv .venv
 .venv\Scripts\python scripts\build_universe.py        # descarga iShares y regenera data/reference
 .venv\Scripts\python scripts\build_universe.py --from-raw data\raw\ishares\AAAA-MM-DD  # sin red
 .venv\Scripts\python scripts\build_holdings.py        # posiciones + desgloses -> data/snapshots/
+.venv\Scripts\python scripts\build_prices.py          # NAV, repartos, rentabilidades, BCE
 .venv\Scripts\python -m pytest -m validation -rsx     # validación contra el gestor (VALIDACION.md)
 ```
 Tras regenerar el universo, revisar el diff de `data/reference/` antes de hacer commit (un cambio

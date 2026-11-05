@@ -165,4 +165,29 @@ Código: `radiografia.analytics.lookthrough.compute_lookthrough`.
   fórmula hecha a mano; la clase cubierta reduce la exposición al dólar exactamente en su peso.
   Tests en `tests/validation/test_lookthrough_real.py`.
 
-(Siguientes métricas a partir del paso 8.)
+### Rentabilidades en euros
+Código: `scripts/build_prices.py`, `radiografia.data.sources.ishares_prices`,
+`radiografia.data.sources.ecb`, `radiografia.analytics.returns`.
+
+- **Datos:** NAV diario de cada ETF desde su lanzamiento (hoja `Historical NAVs`), su divisa
+  (hoja `Fund Header`), los repartos de las clases de distribución (pestaña de la ficha web) y los
+  tipos de referencia del BCE (`EXR`, desde 2009). Todo en el snapshot local.
+- **Rentabilidad total:** factor diario = (NAV_t + reparto con fecha ex-dividendo t) ÷ NAV_(t−1).
+  Un reparto en fecha sin NAV se aplica en la siguiente fecha con NAV.
+- **Euros:** NAV ÷ tipo del BCE (unidades de la divisa por euro), con el último tipo publicado en
+  o antes de cada fecha. Si falta el tipo de una divisa, el ETF no se cubre (nunca se supone EUR).
+- **Cartera:** pesos actuales constantes (rebalanceo diario), reescalados a la parte cubierta.
+  Ventana común desde el lanzamiento del ETF más reciente; un día sin NAV de un ETF cuenta como
+  0 % para él.
+- **Anualizada:** (valor final ÷ inicial)^(365,25 / días) − 1. No se anualiza con menos de un año
+  de historia común; con menos de tres se avisa.
+- **No cubiertos:** ETFs fuera del universo, sin NAV, o de distribución sin datos de repartos.
+- **Validación:** rentabilidades anuales de los 15 ETFs frente a las publicadas por iShares, en la
+  divisa del NAV. Ver `docs/VALIDACION.md`.
+
+### Tracking difference
+- **Dato de la gestora:** rentabilidad anualizada a 5 años del fondo − la de su índice, en la
+  última fecha de fin de mes publicada. Media ponderada sobre los fondos que lo tienen.
+- **Clases cubiertas:** no disponible (la gestora compara con el índice sin cubrir en otra divisa).
+
+(Siguientes métricas a partir del paso 9.)

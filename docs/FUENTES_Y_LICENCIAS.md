@@ -52,6 +52,7 @@ incluso en local. Además el NAV del gestor es mejor dato (ver iShares). **No se
   `Performance Returns`, `Key Facts`, `Portfolio Characteristics`.
   - `Exposure Breakdowns` es justo lo que necesitamos para **validar** nuestro look-through.
   - `Historical NAVs` permite calcular rentabilidades sin Yahoo.
+- Repartos de las clases de distribución: van como datos JSON dentro de la ficha web.
 
 **Qué dicen los términos** (Términos y condiciones de iShares UK para inversores particulares,
 fechados el 17 de octubre de 2016; la página española redirige a un directorio global):
@@ -86,7 +87,8 @@ antiguos. Se queda fuera del MVP, como acordamos.
   no se modifiquen los datos. Si se transforman (p. ej. convertir NAV a euros), hay que decirlo.
 - Los tipos de cambio de referencia del euro se publican con fines informativos y el BCE
   desaconseja usarlos para transacciones. Encaja con una herramienta informativa.
-- Series que usaremos: `EXR` (tipos de cambio diarios) y `EST` (€STR).
+- Series en uso: `EXR` (tipos de cambio diarios, desde el paso 8). `EST` (€STR) se usará en el paso 9.
+- En la app se cita "Fuente: BCE" y se indica que los valores se convierten a euros.
 - **Aviso técnico:** la API (`data-api.ecb.europa.eu`) devolvía errores 500/503 el día de la
   revisión. Hay que cachear y mostrar "no disponible" si falla, nunca inventar el dato.
 

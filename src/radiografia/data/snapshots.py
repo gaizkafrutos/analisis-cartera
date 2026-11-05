@@ -20,6 +20,10 @@ SNAPSHOTS_DIR = Path(__file__).resolve().parents[3] / "data" / "snapshots"
 HOLDINGS_FILE = "holdings.csv.gz"
 BREAKDOWNS_FILE = "breakdowns.csv"
 MANIFEST_FILE = "manifest.csv"
+NAVS_FILE = "navs.csv.gz"
+PERFORMANCE_FILE = "performance.csv"
+DISTRIBUTIONS_FILE = "distributions.csv"
+FX_FILE = "fx.csv"
 
 
 @dataclass(frozen=True)
@@ -28,6 +32,14 @@ class Snapshot:
     holdings: pd.DataFrame
     breakdowns: pd.DataFrame
     manifest: pd.DataFrame
+    navs: pd.DataFrame | None = None
+    """isin, date, nav, currency (NAV currency of the share class)."""
+    performance: pd.DataFrame | None = None
+    """Issuer-published returns: isin, table, as_of, period, start, end, fund, benchmark."""
+    distributions: pd.DataFrame | None = None
+    """isin, ex_date, amount, currency."""
+    fx: pd.DataFrame | None = None
+    """ECB reference rates: date, currency, rate (units of currency per EUR)."""
 
 
 def write_snapshot(
@@ -37,6 +49,24 @@ def write_snapshot(
     holdings.to_csv(directory / HOLDINGS_FILE, index=False)
     breakdowns.to_csv(directory / BREAKDOWNS_FILE, index=False)
     manifest.to_csv(directory / MANIFEST_FILE, index=False)
+
+
+def write_prices(
+    directory: Path,
+    navs: pd.DataFrame,
+    performance: pd.DataFrame,
+    distributions: pd.DataFrame,
+    fx: pd.DataFrame,
+) -> None:
+    directory.mkdir(parents=True, exist_ok=True)
+    navs.to_csv(directory / NAVS_FILE, index=False)
+    performance.to_csv(directory / PERFORMANCE_FILE, index=False)
+    distributions.to_csv(directory / DISTRIBUTIONS_FILE, index=False)
+    fx.to_csv(directory / FX_FILE, index=False)
+
+
+def _optional_csv(path: Path, dates: list[str]) -> pd.DataFrame | None:
+    return pd.read_csv(path, parse_dates=dates) if path.exists() else None
 
 
 def latest_snapshot_dir(root: Path = SNAPSHOTS_DIR) -> Path | None:
@@ -59,4 +89,8 @@ def read_snapshot(directory: Path) -> Snapshot:
             na_values=[""],
         ),
         manifest=pd.read_csv(directory / MANIFEST_FILE, parse_dates=["holdings_as_of"]),
+        navs=_optional_csv(directory / NAVS_FILE, ["date"]),
+        performance=_optional_csv(directory / PERFORMANCE_FILE, ["as_of", "start", "end"]),
+        distributions=_optional_csv(directory / DISTRIBUTIONS_FILE, ["ex_date"]),
+        fx=_optional_csv(directory / FX_FILE, ["date"]),
     )

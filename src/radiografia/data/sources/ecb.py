@@ -1,4 +1,4 @@
-"""European Central Bank: euro foreign exchange reference rates (series EXR).
+"""European Central Bank: euro reference exchange rates (EXR) and the euro short-term rate (EST).
 
 Reuse is free with attribution ("Fuente: BCE"); modified data must say so (we convert NAVs to
 euros). See docs/FUENTES_Y_LICENCIAS.md. Rates are published around 14:15 CET on TARGET business
@@ -20,6 +20,10 @@ _EXR_URL = (
     "https://data-api.ecb.europa.eu/service/data/EXR/D.{currency}.EUR.SP00.A"
     "?format=csvdata&startPeriod={start}&endPeriod={end}"
 )
+_EST_URL = (
+    "https://data-api.ecb.europa.eu/service/data/EST/B.EU000A2X2A25.WT"
+    "?format=csvdata&startPeriod={start}&endPeriod={end}"
+)
 _USER_AGENT = "radiografia-cartera/0.1 (personal educational project)"
 
 
@@ -31,6 +35,21 @@ def exr_url(currency: str, start: date, end: date) -> str:
     return _EXR_URL.format(currency=currency, start=start.isoformat(), end=end.isoformat())
 
 
+def est_url(start: date, end: date) -> str:
+    """€STR, volume-weighted trimmed mean rate, in % per year, published since 1-Oct-2019."""
+    return _EST_URL.format(start=start.isoformat(), end=end.isoformat())
+
+
+def _fetch(url: str, timeout: float) -> str:
+    request = urllib.request.Request(url, headers={"User-Agent": _USER_AGENT})
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return response.read().decode("utf-8")
+
+
+def fetch_est_csv(start: date, end: date, timeout: float = 120) -> str:
+    return _fetch(est_url(start, end), timeout)
+
+
 def fetch_exr_csv(currency: str, start: date, end: date, timeout: float = 120) -> str:
     request = urllib.request.Request(
         exr_url(currency, start, end), headers={"User-Agent": _USER_AGENT}
@@ -40,7 +59,8 @@ def fetch_exr_csv(currency: str, start: date, end: date, timeout: float = 120) -
 
 
 def parse_exr_csv(text: str) -> pd.Series:
-    """ECB SDMX CSV -> Series of rates (foreign currency per EUR) indexed by date."""
+    """ECB SDMX CSV -> Series of observations indexed by date (EXR: currency per EUR;
+    EST: % per year)."""
     rows = list(csv.DictReader(io.StringIO(text)))
     if not rows or "TIME_PERIOD" not in rows[0] or "OBS_VALUE" not in rows[0]:
         raise EcbFormatError("unexpected ECB CSV: TIME_PERIOD/OBS_VALUE columns not found")
@@ -52,3 +72,6 @@ def parse_exr_csv(text: str) -> pd.Series:
     if not values:
         raise EcbFormatError("ECB CSV has no observations")
     return pd.Series(values, name="rate").sort_index()
+
+
+parse_est_csv = parse_exr_csv  # same SDMX CSV layout

@@ -35,7 +35,7 @@ def main() -> int:
     raw_dirs = sorted(p for p in ISHARES_RAW.glob("*") if p.is_dir())
     raw_dir = ISHARES_RAW / args.raw_date if args.raw_date else raw_dirs[-1]
 
-    navs, performance, distributions, failures = [], [], [], []
+    navs, performance, distributions, characteristics, failures = [], [], [], [], []
     for fund in sorted(load_universe().funds.values(), key=lambda f: f.isin):
         pid = fund.issuer_product_id
         try:
@@ -49,6 +49,9 @@ def main() -> int:
                 ishares.read_worksheet(workbook, "Performance Returns")
             )
             dist = ishares_prices.parse_distributions(page)
+            chars = ishares_prices.parse_characteristics(
+                ishares.read_worksheet(workbook, "Portfolio Characteristics")
+            )
         except Exception as exc:
             failures.append(f"{fund.isin} ({pid}): {exc}")
             continue
@@ -62,6 +65,7 @@ def main() -> int:
         )
         performance.append(perf.assign(isin=fund.isin))
         distributions.append(dist.assign(isin=fund.isin))
+        characteristics.append(chars.assign(isin=fund.isin))
         print(
             f"ok  {fund.isin}  {currency}  NAV "
             f"{nav.index.min():%Y-%m-%d}..{nav.index.max():%Y-%m-%d}"
@@ -88,6 +92,12 @@ def main() -> int:
         )
         print(f"ECB {currency}/EUR  {rates.index.min():%Y-%m-%d}..{rates.index.max():%Y-%m-%d}")
 
+    estr_path = ecb_dir / "EST.csv"
+    if not estr_path.exists():
+        estr_path.write_text(ecb.fetch_est_csv(date(2019, 10, 1), end), encoding="utf-8")
+    estr = ecb.parse_est_csv(estr_path.read_text(encoding="utf-8"))
+    print(f"ECB €STR  {estr.index.min():%Y-%m-%d}..{estr.index.max():%Y-%m-%d}")
+
     target = SNAPSHOTS_DIR / raw_dir.name
     write_prices(
         target,
@@ -97,6 +107,8 @@ def main() -> int:
         pd.concat(fx, ignore_index=True)
         if fx
         else pd.DataFrame(columns=["date", "currency", "rate"]),
+        pd.concat(characteristics, ignore_index=True),
+        pd.DataFrame({"date": estr.index, "rate": estr.to_numpy()}),
     )
     print(f"\nprices -> {target}")
     return 0

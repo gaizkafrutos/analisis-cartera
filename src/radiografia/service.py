@@ -17,9 +17,11 @@ from pydantic import BaseModel, ConfigDict
 
 from radiografia.analytics.costs import CostsResult, compute_costs, tracking_differences
 from radiografia.analytics.lookthrough import LookThroughResult, compute_lookthrough
-from radiografia.analytics.returns import ReturnsResult, compute_returns
+from radiografia.analytics.returns import ReturnsResult, compute_returns, fund_index_eur
+from radiografia.analytics.risk import BENCHMARK_ISIN, RiskResult, compute_risk
 from radiografia.data.snapshots import Snapshot, latest_snapshot_dir, read_snapshot
 from radiografia.data.universe import Universe, load_universe
+from radiografia.domain.fund import AssetClass
 from radiografia.domain.portfolio import Portfolio, PortfolioInputResult, RawPosition
 from radiografia.input import build_portfolio, portfolio_from_csv
 
@@ -33,6 +35,7 @@ class AnalysisReport(BaseModel):
     costs: CostsResult
     lookthrough: LookThroughResult
     returns: ReturnsResult
+    risk: RiskResult
 
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
@@ -80,13 +83,33 @@ def analyze(
     universe = universe or get_universe()
     snapshot = get_snapshot() if snapshot is _LATEST else snapshot
     holdings, as_of = None, {}
-    navs = performance = distributions = fx = None
+    navs = performance = distributions = fx = estr = None
     if snapshot is not None:
         holdings = snapshot.holdings
         as_of = {row.isin: row.holdings_as_of.date() for row in snapshot.manifest.itertuples()}
         navs, performance = snapshot.navs, snapshot.performance
         distributions, fx = snapshot.distributions, snapshot.fx
-    returns, _series = compute_returns(portfolio, universe.funds, navs, distributions, fx)
+        if snapshot.estr is not None:
+            estr = snapshot.estr.set_index("date")["rate"]
+    returns, series = compute_returns(portfolio, universe.funds, navs, distributions, fx)
+    equity_share = (
+        sum(
+            w
+            for isin, w in series.weights.items()
+            if universe.funds[isin].asset_class is AssetClass.EQUITY
+        )
+        if series
+        else 0.0
+    )
+    benchmark = universe.funds.get(BENCHMARK_ISIN)
+    risk = compute_risk(
+        series,
+        portfolio.total_eur,
+        fund_index_eur(BENCHMARK_ISIN, navs, distributions, fx),
+        benchmark.name if benchmark else None,
+        estr,
+        equity_share,
+    )
     return AnalysisReport(
         portfolio=portfolio,
         costs=compute_costs(
@@ -94,4 +117,5 @@ def analyze(
         ),
         lookthrough=compute_lookthrough(portfolio, universe.funds, holdings, as_of),
         returns=returns,
+        risk=risk,
     )

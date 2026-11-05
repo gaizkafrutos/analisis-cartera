@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from radiografia.analytics import costs, lookthrough, returns
+from radiografia.analytics import costs, lookthrough, returns, risk
 
 DISCLAIMER = (
     "Herramienta informativa. No es asesoramiento de inversión ni una recomendación de comprar, "
@@ -266,3 +266,121 @@ RETURNS_UNCOVERED_TEXTS: dict[str, str] = {
         "ETF de distribución sin datos de repartos: su rentabilidad total no se puede calcular."
     ),
 }
+
+METRIC_TEXTS.update(
+    {
+        risk.VOLATILITY: MetricText(
+            title="Volatilidad",
+            one_liner=(
+                "Cuánto sube y baja tu cartera de una semana a otra, expresado al año. Más "
+                "volatilidad significa un camino más movido, no necesariamente peor."
+            ),
+            how_it_is_computed=(
+                "Desviación típica de las rentabilidades semanales de los últimos 5 años, "
+                "multiplicada por √52."
+            ),
+            limitations=(
+                "Trata igual las subidas que las bajadas.",
+                "Depende de la frecuencia: con datos diarios o mensuales sale distinta.",
+            ),
+        ),
+        risk.MAX_DRAWDOWN: MetricText(
+            title="Máxima caída",
+            one_liner=(
+                "La peor bajada desde un máximo hasta un mínimo en el periodo, y cuánto tardó en "
+                "recuperarse. Pregúntate si la aguantarías sin vender."
+            ),
+            how_it_is_computed=(
+                "Para cada día, valor ÷ máximo anterior − 1; se toma el peor. Con datos diarios "
+                "de todo el periodo disponible."
+            ),
+            limitations=(
+                "Solo ve el periodo con datos: si empieza en 2009, no incluye la crisis de 2008.",
+                "Es un único episodio, no dice con qué frecuencia ocurre.",
+            ),
+        ),
+        risk.VAR_95_1D: MetricText(
+            title="Pérdida diaria en 1 de cada 20 días (VaR 95 %)",
+            one_liner=(
+                "En 1 de cada 20 días de los últimos 5 años, tu cartera perdió al menos esta "
+                "cantidad. No es la pérdida máxima."
+            ),
+            how_it_is_computed=(
+                "Percentil 5 de las rentabilidades diarias de los últimos 5 años (VaR histórico)."
+            ),
+            limitations=(
+                "Dice cuánto se perdió como mínimo en los peores días, no cuánto como máximo.",
+                "Supone que los próximos 5 años se parecerán a los últimos 5.",
+            ),
+        ),
+        risk.EXPECTED_SHORTFALL_95_1D: MetricText(
+            title="Pérdida media en esos días",
+            one_liner="La pérdida media en ese 5 % de peores días.",
+            how_it_is_computed="Media de las rentabilidades diarias iguales o peores que el VaR.",
+            limitations=("Basado en los últimos 5 años: no incluye crisis anteriores.",),
+        ),
+        risk.BETA: MetricText(
+            title="Sensibilidad al mercado (beta)",
+            one_liner=(
+                "Cuánto se mueve tu cartera cuando se mueve el mercado mundial: con beta 1,2, si "
+                "el índice cae un 10 %, tu cartera tiende a caer en torno a un 12 %."
+            ),
+            how_it_is_computed=(
+                "Regresión de tus rentabilidades semanales sobre las del iShares MSCI ACWI, en "
+                "euros y por encima del €STR, últimos 5 años."
+            ),
+            limitations=(
+                "Es fiable solo si el mercado explica bien tu cartera (R² alto).",
+                "Con mucha renta fija, la comparación con un índice de acciones dice poco.",
+            ),
+        ),
+        risk.ALPHA: MetricText(
+            title="Rentabilidad no explicada por el mercado (alpha)",
+            one_liner=(
+                "La parte de tu rentabilidad que no explica tu beta, con su rango de "
+                "incertidumbre. En ETFs indexados no mide talento: suele ser indistinguible de 0."
+            ),
+            how_it_is_computed=(
+                "Constante de la misma regresión, anualizada (× 52), con un intervalo de "
+                "confianza del 95 % a partir de su error estándar."
+            ),
+            limitations=(
+                "Con pocos años de datos el intervalo es muy ancho.",
+                "No se muestra si la renta variable es menos del 80 % de la cartera.",
+            ),
+        ),
+    }
+)
+
+WARNING_TEXTS.update(
+    {
+        risk.WARNING_SHORT_RISK_HISTORY: (
+            "Hay menos de 3 años de historia común: las cifras dependen mucho de ese periodo."
+        ),
+        risk.WARNING_HISTORY_EXCLUDES_OLDER_CRISES: (
+            "Solo incluye el periodo con datos de todos tus ETFs; crisis anteriores (como 2008) "
+            "pueden no estar."
+        ),
+        risk.WARNING_VAR_IS_NOT_MAX_LOSS: (
+            "No es la pérdida máxima: en los días malos de verdad se perdió bastante más."
+        ),
+        risk.WARNING_VOLATILITY_SYMMETRIC: (
+            "La volatilidad cuenta igual las subidas que las bajadas."
+        ),
+        risk.WARNING_LOW_EQUITY_SHARE_FOR_BETA: (
+            "Menos del 80 % de tu cartera es renta variable: compararla con un índice de "
+            "acciones dice poco. La beta se muestra con cautela y el alpha no se muestra."
+        ),
+        risk.WARNING_LOW_R_SQUARED: (
+            "El mercado explica solo parte de los movimientos de tu cartera (R² bajo): la beta "
+            "es menos fiable."
+        ),
+        risk.WARNING_ALPHA_IS_NOT_SKILL: (
+            "En una cartera de ETFs indexados, el alpha recoge comisiones, diferencias de reparto "
+            "con el índice y ruido, no habilidad."
+        ),
+        risk.WARNING_ALPHA_INTERVAL_INCLUDES_ZERO: (
+            "El rango incluye el 0: con estos datos no se puede distinguir el alpha de cero."
+        ),
+    }
+)

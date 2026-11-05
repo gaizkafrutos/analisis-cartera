@@ -5,6 +5,7 @@ From the product workbook:
     - "Historical NAVs": daily NAV per share, in the NAV currency, since launch.
     - "Performance Returns": the issuer's total returns (gross income reinvested) and its
       benchmark's, used to validate our calculations and for the tracking difference.
+    - "Portfolio Characteristics": e.g. 3-year standard deviation, used to validate volatility.
 From the product page:
     - Distributions of distributing share classes (ex-date and amount), embedded as JSON. Needed
       for total return: the NAV of a distributing class drops on each ex-date.
@@ -165,3 +166,23 @@ def parse_distributions(page_html: str) -> pd.DataFrame:
         .sort_values("ex_date")
         .reset_index(drop=True)
     )
+
+
+CHARACTERISTICS_COLUMNS = ["label", "value", "as_of"]
+
+
+def parse_characteristics(rows: list[list[str]]) -> pd.DataFrame:
+    """'Portfolio Characteristics' rows [label, value, 'as of dd/Mon/yyyy'?] -> table.
+
+    Values are kept as published text ('11.62%', 'EUR 243.63', '1.001'); callers parse what
+    they need.
+    """
+    records = []
+    for row in rows:
+        if len(row) < 2 or not row[0]:
+            continue
+        as_of = None
+        if len(row) > 2 and row[2].startswith("as of "):
+            as_of = parse_issuer_date(row[2].removeprefix("as of "))
+        records.append({"label": row[0], "value": row[1], "as_of": as_of})
+    return pd.DataFrame.from_records(records, columns=CHARACTERISTICS_COLUMNS)

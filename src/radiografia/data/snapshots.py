@@ -24,6 +24,8 @@ NAVS_FILE = "navs.csv.gz"
 PERFORMANCE_FILE = "performance.csv"
 DISTRIBUTIONS_FILE = "distributions.csv"
 FX_FILE = "fx.csv"
+CHARACTERISTICS_FILE = "characteristics.csv"
+ESTR_FILE = "estr.csv"
 
 
 @dataclass(frozen=True)
@@ -40,6 +42,10 @@ class Snapshot:
     """isin, ex_date, amount, currency."""
     fx: pd.DataFrame | None = None
     """ECB reference rates: date, currency, rate (units of currency per EUR)."""
+    characteristics: pd.DataFrame | None = None
+    """Issuer 'Portfolio Characteristics': isin, label, value (text), as_of."""
+    estr: pd.DataFrame | None = None
+    """ECB euro short-term rate: date, rate (% per year)."""
 
 
 def write_snapshot(
@@ -57,8 +63,12 @@ def write_prices(
     performance: pd.DataFrame,
     distributions: pd.DataFrame,
     fx: pd.DataFrame,
+    characteristics: pd.DataFrame,
+    estr: pd.DataFrame,
 ) -> None:
     directory.mkdir(parents=True, exist_ok=True)
+    characteristics.to_csv(directory / CHARACTERISTICS_FILE, index=False)
+    estr.to_csv(directory / ESTR_FILE, index=False)
     navs.to_csv(directory / NAVS_FILE, index=False)
     performance.to_csv(directory / PERFORMANCE_FILE, index=False)
     distributions.to_csv(directory / DISTRIBUTIONS_FILE, index=False)
@@ -93,4 +103,6 @@ def read_snapshot(directory: Path) -> Snapshot:
         performance=_optional_csv(directory / PERFORMANCE_FILE, ["as_of", "start", "end"]),
         distributions=_optional_csv(directory / DISTRIBUTIONS_FILE, ["ex_date"]),
         fx=_optional_csv(directory / FX_FILE, ["date"]),
+        characteristics=_optional_csv(directory / CHARACTERISTICS_FILE, ["as_of"]),
+        estr=_optional_csv(directory / ESTR_FILE, ["date"]),
     )

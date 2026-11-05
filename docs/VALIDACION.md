@@ -59,5 +59,20 @@ máxima es de 0,015 puntos en los ETFs con NAV alto y de hasta 0,12 puntos en lo
 **Repartos:** en la deuda pública euro, 2025-26, la rentabilidad con repartos (−3,01 %) coincide
 con la publicada; solo con el NAV saldría −5,49 %. Test incluido.
 
+## Volatilidad a 3 años de cada fondo (paso 9)
+
+**Qué se compara:** desviación típica muestral de 36 rentabilidades mensuales (rentabilidad
+total, divisa del NAV) × √12, frente a la "Standard Deviation (3y)" que publica iShares a 31-oct-2026.
+
+**Tolerancia (derivada, por fondo):** 0,005 puntos del redondeo de la cifra publicada, más el
+efecto máximo del redondeo del NAV a 2 decimales sobre la desviación típica (desigualdad de
+Minkowski): √(12 × 36/35) × 2 × 0,005 ÷ NAV mínimo de la ventana.
+
+**Resultado:** **15 de 15 coinciden.** En 13 la diferencia es de 0,006 puntos o menos (MSCI World:
+11,62 % publicado y calculado). Las dos mayores son los ETFs de NAV bajo: Global Aggregate
+(~4,5 €), 0,078 puntos; World Small Cap (~6 $), 0,022 puntos.
+
+**Lo que confirma:** la gestora usa la desviación típica muestral (con la poblacional saldría
+~0,16 puntos menos).
+
 ## Pendiente
-- Paso 9: volatilidad y beta frente a `Portfolio Characteristics`.

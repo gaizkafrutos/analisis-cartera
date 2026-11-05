@@ -28,7 +28,7 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0 a 8 hechos.
+Estado: pasos 0 a 9 hechos.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
@@ -211,7 +211,10 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 | Índice de referencia | MSCI ACWI vía ETF que lo replica en EUR (MSCI World como alternativa) | tomada |
 | Resumen | Plantillas deterministas a partir de resultados calculados | tomada |
 | Riesgo histórico | Pesos actuales constantes aplicados al pasado (no es la rentabilidad real del usuario) | tomada |
-| Beta/alpha | Rentabilidades semanales, tipo libre de riesgo €STR (BCE), alpha con intervalo | tomada |
+| Beta/alpha | Semanales, 5 años, frente al iShares MSCI ACWI en EUR, sobre el €STR (BCE); alpha con intervalo al 95 % | tomada |
+| Alpha con poca renta variable | Si la renta variable es < 80 % de la parte cubierta, el alpha no se muestra (sería engañoso) | tomada |
+| Ventanas de riesgo | 5 años para volatilidad, VaR, beta y alpha; toda la historia para la máxima caída | tomada |
+| VaR | Histórico, 95 %, 1 día, con pérdida esperada en la cola | tomada |
 | Divisa de clases cubiertas | 100 % en la divisa de cobertura (supuesto avisado; las posiciones no permiten calcularla) | tomada |
 | Tracking difference | Dato de la gestora a 5 años; no se muestra en clases cubiertas | tomada |
 | Rentabilidad histórica | Solo como contexto en riesgo, simulada, con aviso; nunca proyectada | tomada |

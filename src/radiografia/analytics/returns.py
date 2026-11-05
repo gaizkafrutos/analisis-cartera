@@ -265,3 +265,27 @@ def compute_returns(
         ),
         series,
     )
+
+
+def fund_index_eur(
+    isin: str,
+    navs: pd.DataFrame | None,
+    distributions: pd.DataFrame | None,
+    fx: pd.DataFrame | None,
+) -> pd.Series | None:
+    """EUR total-return index of one ETF (e.g. the benchmark ETF), or None without data."""
+    if navs is None:
+        return None
+    lines = navs[navs["isin"] == isin]
+    if lines.empty:
+        return None
+    currency = lines["currency"].iloc[0]
+    dist = distributions[distributions["isin"] == isin] if distributions is not None else None
+    dist_series = dist.set_index("ex_date")["amount"] if dist is not None and len(dist) else None
+    rates = fx[fx["currency"] == currency].set_index("date")["rate"] if fx is not None else None
+    try:
+        return to_eur(
+            total_return_index(lines.set_index("date")["nav"], dist_series), currency, rates
+        )
+    except ValueError:
+        return None

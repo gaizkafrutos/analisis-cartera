@@ -190,4 +190,26 @@ Código: `scripts/build_prices.py`, `radiografia.data.sources.ishares_prices`,
   última fecha de fin de mes publicada. Media ponderada sobre los fondos que lo tienen.
 - **Clases cubiertas:** no disponible (la gestora compara con el índice sin cubrir en otra divisa).
 
-(Siguientes métricas a partir del paso 9.)
+### Riesgo
+Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en euros de la cartera
+(pesos actuales constantes, ver "Rentabilidades en euros").
+
+| Métrica | Datos | Ventana | Cálculo |
+|---|---|---|---|
+| Volatilidad | Semanales (cierres de viernes) | 5 años | Desviación típica muestral × √52 |
+| Máxima caída | Diarios | Toda la ventana común | Peor valor ÷ máximo anterior − 1, con fechas |
+| VaR 95 % y pérdida esperada | Diarios | 5 años | Percentil 5 (interpolación lineal) y media de la cola |
+| Beta y alpha | Semanales | 5 años | Regresión sobre el iShares MSCI ACWI (EUR) por encima del €STR |
+
+- **€STR:** serie `EST` del BCE (desde 1-oct-2019), % anual; semana = tipo ÷ 100 ÷ 52, último tipo
+  publicado en cada semana.
+- **Intervalos al 95 %:** coeficiente ± 1,96 × error estándar de la regresión (aproximación
+  normal, adecuada con 52 o más semanas). Supone residuos independientes.
+- **Mínimos:** con menos de 1 año de historia común, todo "no disponible"; con menos de 3, aviso.
+  Beta y alpha necesitan al menos 52 semanas.
+- **Renta variable < 80 % de la parte cubierta:** la beta se muestra con aviso; el alpha no se
+  muestra, porque frente a un índice de acciones daría un valor engañoso (ver glosario).
+- **VaR en euros:** VaR × importe cubierto.
+- **Validación:** volatilidad a 3 años (36 meses, en la divisa del NAV) de los 15 ETFs frente a la
+  que publica iShares; ver `docs/VALIDACION.md`. La beta publicada por iShares es frente a su
+  propio índice, del que no tenemos la serie: no se puede contrastar.

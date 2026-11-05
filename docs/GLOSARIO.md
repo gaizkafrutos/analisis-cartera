@@ -37,9 +37,13 @@ los resultados reales.
 - [Rentabilidad en euros](#rentabilidad-en-euros)
 - [Rentabilidad anualizada](#rentabilidad-anualizada)
 - [Rentabilidad simulada con pesos constantes](#rentabilidad-simulada-con-pesos-constantes)
+- [Volatilidad](#volatilidad)
+- [Máxima caída](#máxima-caída)
+- [VaR histórico y pérdida esperada en la cola](#var-histórico-y-pérdida-esperada-en-la-cola)
+- [Beta](#beta)
+- [Alpha e intervalo de confianza](#alpha-e-intervalo-de-confianza)
 
-(Pendientes: volatilidad,
-máxima caída, VaR histórico, beta, alpha...)
+
 
 ---
 
@@ -395,3 +399,93 @@ pública + 20 % Global Aggregate desde 2017, 7,56 %.
 - Rentabilidades pasadas no garantizan rentabilidades futuras.
 
 **En el código:** `radiografia.analytics.returns.compute_returns`.
+
+---
+
+## Volatilidad
+**En una frase:** cuánto sube y baja tu cartera de un periodo a otro, expresado al año.
+
+**Cómo se calcula:** desviación típica (muestral) de las rentabilidades de cada periodo ×
+√(periodos al año). Usamos semanas de los últimos 5 años: × √52.
+
+**Ejemplos reales (5 años a 4-nov-2026, en euros):** MSCI World 13,8 %; 60 % World + 30 % S&P 500 +
+10 % World cubierto 14,1 %; 60 % Nasdaq 100 + 40 % S&P 500 Tecnología 21,8 %; 40 % World + 60 %
+renta fija 7,0 %.
+
+**Qué decisión ayuda a tomar:** comparar el "vaivén" de tu cartera con el de una referencia.
+
+**Trampas habituales:**
+- Depende de la frecuencia: el World sale 15,0 % con datos diarios, 13,8 % semanales y 12,9 %
+  mensuales. En euros, los datos diarios llevan ruido por el desfase de horario del tipo de cambio.
+- Cuenta igual subidas y bajadas.
+- Muestral (divide entre n − 1) o poblacional (entre n): con 36 meses cambia ~0,16 puntos. iShares
+  usa la muestral, y nosotros también.
+
+---
+
+## Máxima caída
+**En una frase:** la peor bajada desde un máximo hasta un mínimo posterior, y cuánto tardó en
+recuperarse.
+
+**Cómo se calcula:** para cada día, valor ÷ máximo anterior − 1; se toma el peor.
+
+**Ejemplo real:** MSCI World en euros, **−33,9 %** del 19-feb-2020 al 23-mar-2020 (covid);
+recuperado el 7-ene-2021. Peor día: 16-mar-2020, −9,9 %.
+
+**Qué decisión ayuda a tomar:** ¿aguantarías ver tu cartera un 34 % abajo sin vender?
+
+**Trampas habituales:** solo ve el periodo con datos (desde 2009 no incluye 2008, cuando la bolsa
+mundial cayó cerca del 50 %); es un único episodio, no una frecuencia.
+
+---
+
+## VaR histórico y pérdida esperada en la cola
+**En una frase:** la pérdida que solo se superó en el 5 % de los peores días.
+
+**Cómo se calcula:** percentil 5 de las rentabilidades diarias de los últimos 5 años. La pérdida
+esperada en la cola (*expected shortfall*) es la media de esos peores días.
+
+**Ejemplo real:** MSCI World, VaR 95 % a 1 día = 1,43 % → **143 € por cada 10.000**: "en 1 de cada
+20 días se perdió al menos 143 €". Media de esos días: 2,18 %.
+
+**Trampas habituales:**
+- No es la pérdida máxima (el 16-mar-2020 se perdió casi un 10 %).
+- Con datos mensuales no es fiable: 60 meses dejan solo 3 en la cola del 5 %.
+- Para un inversor a largo plazo, la máxima caída suele decir más.
+
+---
+
+## Beta
+**En una frase:** cuánto se mueve tu cartera cuando se mueve el mercado.
+
+**Cómo se calcula:** pendiente de la regresión de las rentabilidades semanales de tu cartera sobre
+las del índice (iShares MSCI ACWI en euros), ambas por encima del tipo sin riesgo (€STR del BCE),
+5 años. El R² dice qué parte de los movimientos explica el mercado.
+
+**Ejemplos reales:** MSCI World 1,04 (R² 0,99); 60 % Nasdaq 100 + 40 % S&P 500 Tecnología **1,47**
+(R² 0,79): si el mercado cae un 20 %, tiende a caer en torno a un 29 %.
+
+**Trampas habituales:** solo es fiable con R² alto; con mucha renta fija, compararla con un índice
+de acciones dice poco.
+
+---
+
+## Alpha e intervalo de confianza
+**En una frase:** la rentabilidad que no explica tu beta, con el rango en que probablemente está.
+
+**Cómo se calcula:** constante de la regresión anterior, × 52 para anualizarla. Intervalo al 95 % =
+alpha ± 1,96 × error estándar.
+
+**Ejemplos reales (5 años):** MSCI World +0,09 % [−1,18 %, +1,36 %]; 60 % Nasdaq 100 + 40 % S&P 500
+Tecnología +1,61 % **[−7,20 %, +10,42 %]**. En los dos casos el intervalo incluye el 0: con estos
+datos, el alpha no se distingue de cero.
+
+**Trampas habituales:**
+- En ETFs indexados no mide talento: recoge comisiones, diferencias de reparto con el índice y
+  ruido.
+- Con mucha renta fija sale un alpha grande y aparentemente significativo que solo es la renta
+  fija comparada con un índice de acciones (40 % World + 60 % bonos: −2,95 % [−5,64 %, −0,26 %]).
+  Por eso no lo mostramos si la renta variable es menos del 80 %.
+- El intervalo supone semanas independientes; si no lo son, sería más ancho.
+
+**En el código:** `radiografia.analytics.risk.compute_risk`.

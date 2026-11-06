@@ -24,6 +24,7 @@ from radiografia.data.universe import Universe, load_universe
 from radiografia.domain.fund import AssetClass
 from radiografia.domain.portfolio import Portfolio, PortfolioInputResult, RawPosition
 from radiografia.input import build_portfolio, portfolio_from_csv
+from radiografia.reporting.summary import Summary, build_summary
 
 
 class AnalysisReport(BaseModel):
@@ -36,6 +37,7 @@ class AnalysisReport(BaseModel):
     lookthrough: LookThroughResult
     returns: ReturnsResult
     risk: RiskResult
+    summary: Summary
 
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
@@ -110,12 +112,22 @@ def analyze(
         estr,
         equity_share,
     )
+    costs = compute_costs(
+        portfolio, universe.funds, tracking_differences(performance, universe.funds)
+    )
+    lookthrough = compute_lookthrough(portfolio, universe.funds, holdings, as_of)
+    reference = None
+    if holdings is not None and benchmark is not None:
+        benchmark_portfolio = build_portfolio(
+            [RawPosition(identifier=BENCHMARK_ISIN, amount_eur=1.0)], universe.index()
+        ).portfolio
+        reference = compute_lookthrough(benchmark_portfolio, universe.funds, holdings, as_of)
+    names = {isin: fund.name for isin, fund in universe.funds.items()}
     return AnalysisReport(
         portfolio=portfolio,
-        costs=compute_costs(
-            portfolio, universe.funds, tracking_differences(performance, universe.funds)
-        ),
-        lookthrough=compute_lookthrough(portfolio, universe.funds, holdings, as_of),
+        costs=costs,
+        lookthrough=lookthrough,
         returns=returns,
         risk=risk,
+        summary=build_summary(portfolio, costs, lookthrough, returns, risk, names, reference),
     )

@@ -308,7 +308,7 @@ def _beta_alpha(daily, start, benchmark_index, estr, coverage, status, short, eq
     portfolio_weekly = growth_index(daily, start).resample("W-FRI").last()
     benchmark_weekly = benchmark_index.resample("W-FRI").last()
     weekly = (
-        pd.concat([portfolio_weekly, benchmark_weekly], axis=1, keys=["p", "b"])
+        pd.concat([portfolio_weekly, benchmark_weekly], axis=1, keys=["p", "b"], sort=True)
         .dropna()
         .pct_change()
         .dropna()

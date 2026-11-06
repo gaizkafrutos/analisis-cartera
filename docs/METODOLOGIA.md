@@ -213,3 +213,22 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
 - **Validación:** volatilidad a 3 años (36 meses, en la divisa del NAV) de los 15 ETFs frente a la
   que publica iShares; ver `docs/VALIDACION.md`. La beta publicada por iShares es frente a su
   propio índice, del que no tenemos la serie: no se puede contrastar.
+
+## Resumen en lenguaje claro
+Código: `radiografia.reporting.summary.build_summary`.
+
+- **Plantillas fijas**, sin modelo de lenguaje: cada frase se rellena con cifras ya calculadas por
+  el motor. Es reproducible, testeable y no envía la cartera a ningún servicio externo.
+- **Solo hechos disponibles:** si una métrica no está disponible, su frase no aparece. Nada se
+  estima para rellenar.
+- **Orden:** cobertura (si falta algo), reparto acciones/bonos (si hay bonos), costes, país,
+  divisa, concentración, solapamiento (si es notable: ≥ 30 %; ≥ 90 % se describe como "las mismas
+  empresas"), máxima caída y VaR en euros, sensibilidad al mercado y alpha, rentabilidad simulada.
+- **Comparación:** solo con el índice de referencia (iShares MSCI ACWI, abierto con el mismo
+  look-through), como punto neutro. Nunca con otros productos.
+- **Lenguaje:** describe, no recomienda. Un test busca palabras prohibidas ("deberías",
+  "recomend…", "compra", "vende", "cámbiate"...) en todos los textos, también en carteras reales.
+- **Casos cuidados tras revisar cuatro carteras reales:** no mostrar "−0 %" en una divisa
+  despreciable; expresar el reparto acciones/bonos sobre la parte analizada; avisar en la frase de
+  beta cuando hay mucha renta fija (y no dar alpha); decir desde cuándo hay datos al hablar de la
+  peor caída.

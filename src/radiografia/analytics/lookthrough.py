@@ -117,6 +117,8 @@ class LookThroughResult(BaseModel):
     effective_companies: MetricResult
     shared_companies_weight: MetricResult
     shared_companies_count: int
+    companies_count: int = 0
+    """Distinct companies held through the equity ETFs (share classes merged)."""
     overlaps: tuple[OverlapPair, ...]
     uncovered: tuple[UncoveredPosition, ...]
 
@@ -312,6 +314,9 @@ def compute_lookthrough(
             [*snapshot_warning, WARNING_OVERLAP_IS_NOT_A_PROBLEM_BY_ITSELF],
         ),
         shared_companies_count=shared_count,
+        companies_count=0
+        if companies.empty
+        else companies.groupby(["company", "location"]).ngroups,
         overlaps=_overlaps(equity_lines),
         uncovered=tuple(uncovered),
     )

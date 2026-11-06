@@ -41,12 +41,43 @@ class AnalysisReport(BaseModel):
 
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
-EXAMPLE_PORTFOLIO = EXAMPLES_DIR / "cartera_ejemplo.csv"
 
 
-def example_portfolio_csv() -> bytes:
+class ExamplePortfolio(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    title: str
+    description: str
+    filename: str
+
+
+EXAMPLES = (
+    ExamplePortfolio(
+        key="global",
+        title="Global diversificada",
+        description="MSCI World, emergentes y dos fondos de bonos (70 % acciones, 30 % bonos).",
+        filename="cartera_global.csv",
+    ),
+    ExamplePortfolio(
+        key="concentrada",
+        title="Muy concentrada",
+        description="Nasdaq 100 y S&P 500 Tecnología: un país y casi un solo sector.",
+        filename="cartera_concentrada.csv",
+    ),
+    ExamplePortfolio(
+        key="solapada",
+        title="Con fondos solapados",
+        description="MSCI World, S&P 500 y Nasdaq 100: las mismas empresas varias veces.",
+        filename="cartera_solapada.csv",
+    ),
+)
+
+
+def example_portfolio_csv(key: str = "global") -> bytes:
     """Example portfolio loadable with one click (Spanish Excel CSV format)."""
-    return EXAMPLE_PORTFOLIO.read_bytes()
+    example = next(e for e in EXAMPLES if e.key == key)
+    return (EXAMPLES_DIR / example.filename).read_bytes()
 
 
 @lru_cache(maxsize=1)

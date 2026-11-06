@@ -1,5 +1,10 @@
 # Validación contra los datos del gestor
 
+> Las cifras de ejemplo de este documento salen de datos publicados por iShares (BlackRock),
+> con posiciones a 4-nov-2026, o de cálculos propios hechos con ellos. Se reproducen como
+> ejemplos puntuales para explicar la herramienta; los datos pertenecen a su titular y pueden
+> haber cambiado.
+
 Resultados de comparar nuestros cálculos con las cifras que publica iShares. Se regeneran con:
 
 ```

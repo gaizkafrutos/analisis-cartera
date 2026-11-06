@@ -229,6 +229,7 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 | Precios/rentabilidades | NAV de iShares + tipos de cambio del BCE; yfinance descartado | tomada |
 | Datos en el despliegue | Pedir autorización a BlackRock; mientras tanto, solo ejecución local | pendiente del autor |
 | Licencia del código | MIT (`LICENSE`); no cubre datos de terceros (sección "Licencia" del README) | tomada (6-nov-2026) |
+| Cifras de iShares en README y docs | Se mantienen como ejemplos puntuales, con aviso de procedencia y fecha en cada documento; nada de tablas completas de posiciones | tomada (6-nov-2026) |
 | Repositorio | GitHub privado hasta decidir licencia y datos | tomada |
 | Entrada: ISIN fuera del universo | ISIN válido pero desconocido no es error: "no cubierto" con su % de cartera | tomada |
 | Entrada: ISIN inválido | Formato o dígito de control incorrecto = error que el usuario debe corregir | tomada |

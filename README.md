@@ -27,6 +27,11 @@ Mucha gente compra dos o tres ETFs "para diversificar" sin saber que:
 
 Esta herramienta lo calcula con los datos que publican las propias gestoras y lo explica.
 
+> Las cifras de ejemplo de este README y de `docs/` salen de datos publicados por iShares (BlackRock),
+> con posiciones a 4-nov-2026, o de cálculos propios hechos con ellos. Se reproducen como
+> ejemplos puntuales para explicar la herramienta; los datos pertenecen a su titular y pueden
+> haber cambiado.
+
 ## Qué muestra
 
 1. **Tu cartera:** tres carteras de ejemplo (global diversificada, muy concentrada, con fondos
@@ -188,4 +193,5 @@ La licencia **no cubre datos de terceros**:
   [app/static/fonts/OFL.txt](app/static/fonts/OFL.txt)).
 
 El repositorio no incluye posiciones ni precios: los scripts los descargan para el uso
-personal de quien los ejecuta.
+personal de quien los ejecuta. Las cifras de ejemplo del README, de `docs/` y de las
+capturas proceden de esos datos y se citan como ejemplos puntuales.

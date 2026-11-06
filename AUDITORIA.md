@@ -12,6 +12,9 @@ resultados de la validación, en `docs/VALIDACION.md`.
 > −16,9 %); la rentabilidad simulada usa los **últimos 5 años** para todas las carteras (aquí,
 > desde la fecha común de cada una); y la CI tiene **233 tests** (aquí, 219). La tabla con las
 > dos referencias está en `docs/GLOSARIO.md`, "Caída en episodios fijos".
+>
+> Las cifras se reproducen como ejemplos puntuales para explicar la herramienta; los datos
+> de iShares pertenecen a su titular.
 
 **Conclusión en una frase:** la parte de *qué tienes* (look-through, divisa, concentración,
 solapamiento y costes) es sólida, está validada contra la gestora y responde preguntas que un

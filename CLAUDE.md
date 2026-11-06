@@ -205,6 +205,7 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 | Nombre | Radiografía de cartera (paquete `radiografia`) | tomada |
 | Interfaz MVP | Streamlit; motor independiente listo para FastAPI | tomada |
 | Flujo de la interfaz | 1. Tu cartera → 2. Lo esencial (resumen) → 3. En detalle (pestañas Costes, Exposición, Concentración, Riesgo); listas en vez de tablas anchas; gráficos de barras plotly | tomada |
+| Diseño visual | Hoja de mapa topográfico (`DESIGN.md`): papel claro, siena = tu cartera, azul = mercado mundial, rojo solo para problemas, rayado = sin datos; fuente Barlow autoalojada (OFL), sin peticiones externas | tomada sin el autor (6-nov-2026), revisable |
 | Productos | Solo ETFs UCITS en el MVP; fondos indexados fuera (indicarlo en README) | tomada |
 | Gestoras | iShares primero; Vanguard solo si publica posiciones UCITS descargables | tomada |
 | Universo | ~15 ETFs para el flujo completo; ampliar a 50-100 después | tomada |
@@ -229,6 +230,11 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 | Entrada: ISIN fuera del universo | ISIN válido pero desconocido no es error: "no cubierto" con su % de cartera | tomada |
 | Entrada: ISIN inválido | Formato o dígito de control incorrecto = error que el usuario debe corregir | tomada |
 | Entrada: importe | Valor de mercado actual en EUR (no precio de compra); la interfaz lo dice | tomada |
+
+## Diseño
+Ver `DESIGN.md` (tintas, tipografía, piezas) y `PRODUCT.md` (contexto de producto para las
+herramientas de diseño). Los colores se repiten en `.streamlit/config.toml`, `app/style.css` y las
+constantes de `app/streamlit_app.py`: si cambia uno, cambian los tres.
 
 ## Comandos (Windows; en Linux/macOS usar `.venv/bin/`)
 ```

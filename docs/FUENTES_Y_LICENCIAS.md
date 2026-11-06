@@ -103,6 +103,10 @@ antiguos. Se queda fuera del MVP, como acordamos.
   y reconsiderar si hace falta pedir permiso.
 
 ## Otros
+- Tipografía **Barlow** (Barlow Project Authors), licencia SIL Open Font License 1.1: permite
+  usarla, incluirla y redistribuirla con el programa. Ficheros y licencia en `app/static/fonts/`,
+  descargados de `github.com/google/fonts` el 6-nov-2026. Se sirven desde la propia app para no
+  hacer peticiones a Google Fonts.
 - Los nombres de sectores son la clasificación GICS (marca de MSCI y S&P) y los nombres de
   índices son marcas de sus proveedores. Se usan solo para identificar; citarlo en el README.
 

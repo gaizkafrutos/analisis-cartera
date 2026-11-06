@@ -34,7 +34,8 @@ Esta herramienta lo calcula con los datos que publican las propias gestoras y lo
 2. **Lo esencial:** un resumen en frases, generado con plantillas a partir de las cifras.
 3. **En detalle**, en cuatro pestañas:
    - **Costes:** TER ponderado, coste anual en euros y diferencia real con el índice.
-   - **Exposición:** por país, sector y divisa, abriendo cada ETF (*look-through*).
+   - **Exposición:** por país, sector y divisa, abriendo cada ETF (*look-through*), con el
+     mercado mundial marcado al lado en la misma escala.
    - **Concentración:** las 10 mayores empresas, número efectivo de empresas y solapamiento
      entre cada par de ETFs.
    - **Riesgo:** cuánto habría caído tu cartera en **2020 y 2022 comparado con el mercado
@@ -77,6 +78,12 @@ app/streamlit_app.py ── solo presentación ┘
 
 Stack: Python 3.12, pandas, numpy, pydantic, Streamlit, plotly, pytest, ruff.
 
+Diseño: la cartera como una hoja de mapa topográfico (cada cifra con su escala, fecha y
+fuente; lo que no se pudo medir, rayado). Detalle en [DESIGN.md](DESIGN.md). Las capturas de
+arriba son del diseño anterior.
+
+Herramientas parecidas y qué se ha aprendido de ellas: [docs/REFERENCIAS.md](docs/REFERENCIAS.md).
+
 ## Validación contra las gestoras
 
 Lo que se puede contrastar se contrasta con lo que publica iShares, con tolerancias derivadas de
@@ -113,7 +120,7 @@ ellos la app funciona igual, pero solo con los costes: el resto aparece como "no
 .venv\Scripts\python -m pytest -m validation
 ```
 
-El primero son los tests que corren en la CI (229, sin red ni datos externos). El segundo, la
+El primero son los tests que corren en la CI (233, sin red ni datos externos). El segundo, la
 validación con datos reales (67 más, con la copia local).
 
 ## Datos y licencias

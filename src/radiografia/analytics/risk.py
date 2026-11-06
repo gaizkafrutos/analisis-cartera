@@ -5,6 +5,9 @@ Metrics and windows (decided with the author, see docs/METODOLOGIA.md and AUDITO
       reference index, so different portfolios are compared on the same events. Added after the
       audit: the whole-window maximum drawdown ranked a concentrated tech portfolio as less risky
       than the MSCI World because its worst episode was 2020, not 2022.
+    - Drawdown profile: daily distance below the previous peak of the portfolio and of the
+      reference index, both measured from the start of the portfolio's window (for the chart
+      that puts the episodes in context).
     - Volatility: standard deviation of weekly returns x sqrt(52), last 5 years.
     - Maximum drawdown: worst fall from a previous peak, daily, whole available window; with the
       peak, trough and recovery dates.
@@ -101,6 +104,16 @@ class EpisodeDrawdown(BaseModel):
     reference: float | None
 
 
+class ProfilePoint(BaseModel):
+    """Distance below the previous peak on one day (-0.2 = 20 % below it)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    day: date
+    portfolio: float
+    reference: float | None
+
+
 class Drawdown(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -125,6 +138,7 @@ class RiskResult(BaseModel):
     r_squared: float | None
     benchmark_name: str | None
     episodes: tuple[EpisodeDrawdown, ...] = ()
+    profile: tuple[ProfilePoint, ...] = ()
 
 
 # --- pure building blocks ---------------------------------------------------------------------
@@ -138,7 +152,16 @@ def growth_index(daily: pd.Series, start: pd.Timestamp) -> pd.Series:
 
 def weekly_returns(daily: pd.Series, start: pd.Timestamp) -> pd.Series:
     weekly = growth_index(daily, start).resample("W-FRI").last()
-    return weekly.pct_change().dropna().iloc[1:]  # drop the first, partial week
+    return _real_last_day(weekly.pct_change().dropna().iloc[1:], daily)  # first week is partial
+
+
+def _real_last_day(weekly: pd.Series | pd.DataFrame, daily: pd.Series):
+    """Weekly series are labelled with the week's Friday; if the data stop earlier in the last
+    week (e.g. on a Wednesday), relabel that week with the last real date so no window reports
+    a date after the data."""
+    if len(weekly) and weekly.index[-1] > daily.index[-1]:
+        weekly = weekly.rename(index={weekly.index[-1]: daily.index[-1]})
+    return weekly
 
 
 def trailing(series: pd.Series, years: int) -> pd.Series:
@@ -193,6 +216,35 @@ def episode_drawdowns(
             reference=dd(reference_values, e),
         )
         for e in EPISODE_DEFINITIONS
+    )
+
+
+def drawdown_profile(
+    portfolio_values: pd.Series, reference_values: pd.Series | None
+) -> tuple[ProfilePoint, ...]:
+    """Daily drawdown of the portfolio and of the reference over the same dates.
+
+    Daily, like the episodes, so the chart shows the same depths as the episode figures. The
+    reference's peak is taken from the portfolio's first date on, so both start at 0.
+    """
+    values = portfolio_values.dropna()
+    portfolio = values / values.cummax() - 1
+    reference = None
+    if reference_values is not None and not reference_values.empty:
+        ref = reference_values.sort_index().loc[values.index[0] :]
+        ref = ref.reindex(ref.index.union(values.index)).ffill().reindex(values.index)
+        reference = ref / ref.cummax() - 1
+    return tuple(
+        ProfilePoint(
+            day=day.date(),
+            portfolio=float(portfolio[day]),
+            reference=(
+                float(reference[day])
+                if reference is not None and pd.notna(reference[day])
+                else None
+            ),
+        )
+        for day in values.index
     )
 
 
@@ -358,11 +410,10 @@ def compute_risk(
     beta, alpha, r_squared = _beta_alpha(
         daily, start, benchmark_index, estr, coverage, status, short, equity_share
     )
-    episodes = (
-        episode_drawdowns(growth_index(daily, start), benchmark_index)
-        if status is not MetricStatus.NOT_AVAILABLE
-        else ()
-    )
+    available = status is not MetricStatus.NOT_AVAILABLE
+    values = growth_index(daily, start)
+    episodes = episode_drawdowns(values, benchmark_index) if available else ()
+    profile = drawdown_profile(values, benchmark_index) if available else ()
     return RiskResult(
         volatility=volatility,
         max_drawdown=mdd,
@@ -375,6 +426,7 @@ def compute_risk(
         r_squared=r_squared,
         benchmark_name=benchmark_name if beta.value is not None else None,
         episodes=episodes,
+        profile=profile,
     )
 
 
@@ -398,7 +450,7 @@ def _beta_alpha(daily, start, benchmark_index, estr, coverage, status, short, eq
     )
     rate = estr.sort_index().reindex(weekly.index, method="ffill")
     weekly = weekly.assign(rf=rate / 100 / WEEKS_PER_YEAR).dropna()
-    weekly = trailing(weekly, WINDOW_YEARS)
+    weekly = trailing(_real_last_day(weekly, daily), WINDOW_YEARS)
     if len(weekly) < MIN_WEEKS_FOR_REGRESSION:
         return unavailable
 

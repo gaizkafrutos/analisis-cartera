@@ -27,47 +27,13 @@ from radiografia.reporting.formatting import (
     format_percent,
     short_fund_name,
 )
+from radiografia.reporting.presentation import country_name, currency_name
 from radiografia.reporting.texts import DISCLAIMER
 
 SAME_INDEX_OVERLAP = 0.90
 NOTABLE_OVERLAP = 0.30
 NOTABLE_COST_GAP = 0.10  # share of cost minus share of money, to mention the costliest ETF
 NEGLIGIBLE = 0.005  # below 0.5 % a share is described as "practically nothing"
-
-COUNTRY_NAMES = {
-    "United States": "EE. UU.",
-    "Japan": "Japón",
-    "United Kingdom": "Reino Unido",
-    "Canada": "Canadá",
-    "Switzerland": "Suiza",
-    "France": "Francia",
-    "Germany": "Alemania",
-    "Netherlands": "Países Bajos",
-    "Taiwan": "Taiwán",
-    "China": "China",
-    "India": "India",
-    "Korea (South)": "Corea del Sur",
-    "Australia": "Australia",
-    "Italy": "Italia",
-    "Spain": "España",
-    "Sweden": "Suecia",
-    "Denmark": "Dinamarca",
-    "Brazil": "Brasil",
-}
-CURRENCY_NAMES = {
-    "USD": "dólar",
-    "EUR": "euro",
-    "JPY": "yen",
-    "GBP": "libra",
-    "CHF": "franco suizo",
-    "CAD": "dólar canadiense",
-    "TWD": "dólar taiwanés",
-    "INR": "rupia india",
-    "HKD": "dólar de Hong Kong",
-    "KRW": "won",
-    "CNY": "yuan",
-    "AUD": "dólar australiano",
-}
 
 
 class Topic(StrEnum):
@@ -106,11 +72,11 @@ def _pct(value: float, decimals: int = 0) -> str:
 
 
 def _country(name: str) -> str:
-    return COUNTRY_NAMES.get(name, name)
+    return country_name(name)
 
 
 def _currency(code: str) -> str:
-    return CURRENCY_NAMES.get(code, code)
+    return currency_name(code)
 
 
 def _weight(breakdown: BreakdownResult, label: str) -> float | None:

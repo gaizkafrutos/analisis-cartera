@@ -23,7 +23,8 @@ PRIVACY_NOTE = (
     "envía a ningún servicio externo."
 )
 PARTIAL_COVERAGE_NOTE = (
-    "Calculado sobre el {covered} de tu cartera. {missing} corresponden a posiciones sin datos."
+    "Calculado sobre el {covered} de tu cartera; {missing} no se incluyen en este cálculo "
+    "(el motivo se indica en cada sección)."
 )
 NOT_AVAILABLE_NOTE = "Ninguna posición de tu cartera está en el universo analizado."
 DATA_DATE_NOTE = "Datos de la gestora consultados el {date}."
@@ -180,8 +181,8 @@ WARNING_TEXTS: dict[str, str] = {
 UNCOVERED_TEXTS: dict[str, str] = {
     lookthrough.UncoveredReason.OUTSIDE_UNIVERSE: "No está en el universo analizado.",
     lookthrough.UncoveredReason.FIXED_INCOME_NOT_LOOKED_THROUGH: (
-        "Renta fija: cuenta en la exposición por divisa, pero no se desglosa por empresa, país ni "
-        "sector."
+        "Es renta fija: cuenta en la exposición por divisa, pero no se desglosa por empresa, "
+        "país ni sector."
     ),
     lookthrough.UncoveredReason.OTHER_ASSET_CLASS: "Clase de activo que no se desglosa.",
     lookthrough.UncoveredReason.SYNTHETIC_REPLICATION: (

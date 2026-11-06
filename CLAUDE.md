@@ -28,7 +28,7 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0 a 10 hechos (motor completo).
+Estado: pasos 0 a 11 hechos (motor e interfaz completos).
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
@@ -204,6 +204,7 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 |---|---|---|
 | Nombre | Radiografía de cartera (paquete `radiografia`) | tomada |
 | Interfaz MVP | Streamlit; motor independiente listo para FastAPI | tomada |
+| Flujo de la interfaz | 1. Tu cartera → 2. Lo esencial (resumen) → 3. En detalle (pestañas Costes, Exposición, Concentración, Riesgo); listas en vez de tablas anchas; gráficos de barras plotly | tomada |
 | Productos | Solo ETFs UCITS en el MVP; fondos indexados fuera (indicarlo en README) | tomada |
 | Gestoras | iShares primero; Vanguard solo si publica posiciones UCITS descargables | tomada |
 | Universo | ~15 ETFs para el flujo completo; ampliar a 50-100 después | tomada |

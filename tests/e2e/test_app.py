@@ -1,10 +1,16 @@
-"""The Streamlit screen, run headless with AppTest (no browser, no network)."""
+"""The Streamlit app, run headless with AppTest (no browser, no network).
+
+The costs part only needs the committed universe, so it is checked everywhere (also in CI). The
+look-through, returns and risk sections need the local snapshot; without it they must say
+"not available" instead of failing.
+"""
 
 from pathlib import Path
 
 import pytest
 from streamlit.testing.v1 import AppTest
 
+from radiografia import service
 from radiografia.domain.portfolio import RawPosition
 
 APP = str(Path(__file__).resolve().parents[2] / "app" / "streamlit_app.py")
@@ -12,33 +18,42 @@ APP = str(Path(__file__).resolve().parents[2] / "app" / "streamlit_app.py")
 
 @pytest.fixture
 def app():
-    return AppTest.from_file(APP, default_timeout=30).run()
+    return AppTest.from_file(APP, default_timeout=60).run()
 
 
-def _metric_values(app):
+def _metrics(app):
     return {metric.label: metric.value for metric in app.metric}
 
 
-def test_example_portfolio_shows_costs_on_first_load(app):
+def _markdown(app):
+    return "\n".join(block.value for block in app.markdown)
+
+
+def test_default_global_example_shows_summary_and_sections(app):
     assert not app.exception
-    # Same numbers as the worked example: 12 + 2.10 + 5.50 EUR on 10,000 EUR
-    assert _metric_values(app) == {
-        "Comisión media (TER ponderado)": "0,196 %",
-        "Coste anual estimado": "19,60 € / año",
-    }
-    lines = next(m.value for m in app.markdown if m.value.startswith("- **Core MSCI World"))
-    assert lines.splitlines() == [
-        "- **Core MSCI World** · 60 % de la cartera · "
-        "TER 0,20 % → **12,00 €/año** (61 % del coste)",
-        "- **MSCI World EUR Hedged (Acc) · cubierto en divisa** · 10 % de la cartera · "
-        "TER 0,55 % → **5,50 €/año** (28 % del coste)",
-        "- **Core S&P 500** · 30 % de la cartera · TER 0,07 % → **2,10 €/año** (11 % del coste)",
-    ]
+    # 6000 x 0.20 % + 1000 x 0.18 % + 2000 x 0.10 % + 1000 x 0.07 % = 16.50 EUR
+    assert _metrics(app)["Coste anual estimado"] == "16,50 € / año"
+    headers = [h.value for h in app.header]
+    assert headers == ["1. Tu cartera", "2. Lo esencial", "3. En detalle"]
+    assert "Tus ETFs te cuestan unos 16,50 € al año" in _markdown(app)
+    assert [tab.label for tab in app.tabs] == ["Costes", "Exposición", "Concentración", "Riesgo"]
+
+
+@pytest.mark.parametrize(
+    ("example", "annual_cost"),
+    [("Muy concentrada", "24,00 € / año"), ("Con fondos solapados", "18,10 € / año")],
+)
+def test_other_examples(app, example, annual_cost):
+    app.selectbox(key="example").set_value(example).run()
+    assert not app.exception
+    assert _metrics(app)["Coste anual estimado"] == annual_cost
 
 
 def test_disclaimer_and_privacy_note_are_visible(app):
     assert any("No es asesoramiento" in info.value for info in app.info)
-    assert any("no se guarda" in caption.value for caption in app.caption)
+    captions = " ".join(caption.value for caption in app.caption)
+    assert "no se guarda" in captions
+    assert captions.count("No es asesoramiento") >= 2  # summary and details
 
 
 def test_form_with_an_isin_typo_blocks_the_analysis(app):
@@ -51,6 +66,7 @@ def test_form_with_an_isin_typo_blocks_the_analysis(app):
     app.run()
     assert app.error and "dígito de control" in app.error[0].value
     assert not app.metric
+    assert "2. Lo esencial" not in [h.value for h in app.header]
 
 
 def test_form_with_a_fund_outside_the_universe_is_partial(app):
@@ -61,7 +77,14 @@ def test_form_with_a_fund_outside_the_universe_is_partial(app):
     ]
     app.run()
     assert not app.exception
-    assert _metric_values(app)["Coste anual estimado"] == "18,00 € / año"
-    warnings = " ".join(w.value for w in app.warning)
-    assert "aún no está en el universo" in warnings
-    assert "Calculado sobre el 90,0 %" in warnings
+    assert _metrics(app)["Coste anual estimado"] == "18,00 € / año"
+    assert "aún no está en el universo" in " ".join(w.value for w in app.warning)
+    assert "Se ha analizado el 90,0 %" in _markdown(app)
+
+
+def test_without_snapshot_the_app_degrades_gracefully(app, monkeypatch):
+    monkeypatch.setattr(service, "get_snapshot", lambda: None)
+    app.run()
+    assert not app.exception
+    assert _metrics(app)["Coste anual estimado"] == "16,50 € / año"
+    assert any("No disponible" in info.value for info in app.info)

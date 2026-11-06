@@ -41,8 +41,6 @@ class Listing(BaseModel):
     exchange: str
     ticker: str
     currency: str
-    bloomberg_ticker: str | None = None
-    ric: str | None = None
     listing_date: date | None = None
 
 

@@ -102,6 +102,13 @@ antiguos. Se queda fuera del MVP, como acordamos.
   Para la fase 3: usar solo para calcular resultados, citar, no publicar los ficheros en bruto,
   y reconsiderar si hace falta pedir permiso.
 
+## Licencia del código
+MIT (`LICENSE`), decidida el 6-nov-2026. Cubre solo el código y la documentación propia; no los
+datos de iShares (tampoco los metadatos transcritos en `data/reference/`), ni los del BCE, ni la
+tipografía Barlow (OFL). `data/reference/listings.csv` guarda bolsa, ticker, divisa y fecha de
+cotización; los tickers de Bloomberg y los RIC que también publica iShares no se guardan, porque
+son identificadores de esos proveedores y la app no los usa.
+
 ## Otros
 - Tipografía **Barlow** (Barlow Project Authors), licencia SIL Open Font License 1.1: permite
   usarla, incluirla y redistribuirla con el programa. Ficheros y licencia en `app/static/fonts/`,

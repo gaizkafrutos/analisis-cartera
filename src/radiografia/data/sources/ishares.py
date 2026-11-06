@@ -121,8 +121,8 @@ _LISTING_COLUMNS = {
     "colTicker": "ticker",
     "colCurrencyCode": "currency",
     "colListingDate": "listing_date",
-    "colBBEQTICK": "bloomberg_ticker",
-    "colRic": "ric",
+    # Bloomberg tickers and RICs are also on the page; they are vendor identifiers the app
+    # does not need, so they are not stored.
 }
 
 
@@ -178,8 +178,6 @@ def parse_listings(html: str, isin: str) -> list[Listing]:
                 exchange=row["exchange"],
                 ticker=row["ticker"],
                 currency=row["currency"],
-                bloomberg_ticker=_optional(row.get("bloomberg_ticker")),
-                ric=_optional(row.get("ric")),
                 listing_date=parse_issuer_date(listing_date) if listing_date else None,
             )
         )

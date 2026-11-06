@@ -6,6 +6,13 @@ BCE. Se usan cuatro carteras: las tres de ejemplo (global diversificada, muy con
 solapados) y un 100 % MSCI World como referencia. Los tests citados están en `tests/`; los
 resultados de la validación, en `docs/VALIDACION.md`.
 
+> **Nota posterior (6-nov-2026).** Las cifras de esta auditoría son las del momento en que se
+> escribió, antes de aplicar la recomendación 1. Desde entonces: la referencia de las caídas en
+> la app y el resumen es el **MSCI ACWI** (en 2022, −16,3 %; aquí se compara con el MSCI World,
+> −16,9 %); la rentabilidad simulada usa los **últimos 5 años** para todas las carteras (aquí,
+> desde la fecha común de cada una); y la CI tiene **233 tests** (aquí, 219). La tabla con las
+> dos referencias está en `docs/GLOSARIO.md`, "Caída en episodios fijos".
+
 **Conclusión en una frase:** la parte de *qué tienes* (look-through, divisa, concentración,
 solapamiento y costes) es sólida, está validada contra la gestora y responde preguntas que un
 inversor no puede contestar solo. La parte de *riesgo histórico* es correcta pero aporta mucho

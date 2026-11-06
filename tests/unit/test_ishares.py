@@ -119,9 +119,10 @@ def test_listings():
         ("Bolsa Mexicana De Valores", "CSPX", "MXN"),
     ]
     assert listings[0].listing_date == date(2010, 9, 25)
-    assert listings[0].ric == "SXR8.DE"
+    # vendor identifiers (Bloomberg ticker, RIC) are on the page but not kept
+    kept = {"isin", "exchange", "ticker", "currency", "listing_date"}
+    assert set(listings[0].model_dump()) == kept
     assert listings[1].listing_date is None  # "-" means not published
-    assert listings[1].ric is None
 
 
 def test_no_listings_is_an_error():

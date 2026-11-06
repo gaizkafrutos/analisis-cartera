@@ -165,6 +165,13 @@ Código: `radiografia.analytics.lookthrough.compute_lookthrough`.
   fórmula hecha a mano; la clase cubierta reduce la exposición al dólar exactamente en su peso.
   Tests en `tests/validation/test_lookthrough_real.py`.
 
+### Comparación con el mercado mundial en los gráficos de exposición
+El iShares MSCI ACWI se abre con el mismo look-through que la cartera
+(`AnalysisReport.reference`). En cada barra de país, sector o divisa, una marca azul indica su
+peso en el índice. Las filas son las 8 mayores de la cartera; el "Resto" del índice es todo lo
+que tiene fuera de esas filas, para que las dos columnas sumen lo mismo
+(`reporting.presentation.with_reference`).
+
 ### Rentabilidades en euros
 Código: `scripts/build_prices.py`, `radiografia.data.sources.ishares_prices`,
 `radiografia.data.sources.ecb`, `radiografia.analytics.returns`.
@@ -201,6 +208,7 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
 | Métrica | Datos | Ventana | Cálculo |
 |---|---|---|---|
 | Caídas en episodios | Diarios | Años naturales 2020 y 2022 | Peor valor ÷ máximo anterior − 1 dentro del año, partiendo del valor al empezarlo; igual para el iShares MSCI ACWI |
+| Perfil de caídas (gráfico) | Diarios | Toda la ventana común | Cada día, valor ÷ máximo anterior − 1, de la cartera y del iShares MSCI ACWI; el máximo del índice se cuenta desde el inicio de la ventana de la cartera |
 | Volatilidad | Semanales (cierres de viernes) | 5 años | Desviación típica muestral × √52 |
 | Máxima caída | Diarios | Toda la ventana común | Peor valor ÷ máximo anterior − 1, con fechas |
 | VaR 95 % y pérdida esperada | Diarios | 5 años | Percentil 5 (interpolación lineal) y media de la cola |
@@ -214,6 +222,9 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
   Beta y alpha necesitan al menos 52 semanas.
 - **Renta variable < 80 % de la parte cubierta:** la beta se muestra con aviso; el alpha no se
   muestra, porque frente a un índice de acciones daría un valor engañoso (ver glosario).
+- **Semanas:** se agrupan por semanas que acaban en viernes; si los datos terminan antes del
+  viernes (un miércoles, por ejemplo), la última semana se fecha en el último día con datos, para
+  que ningún periodo diga una fecha posterior a los datos (antes salía el viernes siguiente).
 - **VaR en euros:** VaR × importe cubierto.
 - **Episodios fijos (tras la auditoría):** la máxima caída de toda la ventana no sirve para
   comparar carteras, porque cada una tiene su peor momento en un año distinto (la cartera

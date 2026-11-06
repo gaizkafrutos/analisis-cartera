@@ -28,7 +28,7 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0 a 12 hechos. Despliegue público en espera de permiso de BlackRock (solo local).
+Estado: pasos 0 a 13 hechos (MVP completo y auditado, ver AUDITORIA.md). Despliegue público en espera de permiso de BlackRock (solo local).
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:

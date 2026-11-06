@@ -11,6 +11,8 @@ cuánto pagas y cuánto se ha movido.
 
 ![Recorrido por la app](docs/img/recorrido.gif)
 
+*Cartera de ejemplo "Muy concentrada" (Nasdaq 100 y S&P 500 Tecnología), datos a 4-nov-2026.*
+
 ## El problema
 
 Mucha gente compra dos o tres ETFs "para diversificar" sin saber que:
@@ -79,8 +81,7 @@ app/streamlit_app.py ── solo presentación ┘
 Stack: Python 3.12, pandas, numpy, pydantic, Streamlit, plotly, pytest, ruff.
 
 Diseño: la cartera como una hoja de mapa topográfico (cada cifra con su escala, fecha y
-fuente; lo que no se pudo medir, rayado). Detalle en [DESIGN.md](DESIGN.md). Las capturas de
-arriba son del diseño anterior.
+fuente; lo que no se pudo medir, rayado). Detalle en [DESIGN.md](DESIGN.md).
 
 Herramientas parecidas y qué se ha aprendido de ellas: [docs/REFERENCIAS.md](docs/REFERENCIAS.md).
 

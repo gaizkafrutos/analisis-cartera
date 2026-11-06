@@ -328,19 +328,28 @@ def _concentration(
     """Top companies, top-10 weight, effective number (1/HHI), weight and count of shared ones."""
     if companies.empty or equity_weight <= 0:
         return (), None, None, None, 0
-    grouped = companies.groupby(["company", "location"]).agg(
-        w=("w", "sum"), isins=("isin", lambda s: tuple(sorted(set(s))))
-    )
+    keys = ["company", "location"]
+    # vectorised aggregation (a per-company Python lambda took ~0.1 s for 4,000 companies);
+    # the list of funds is only built for the companies that are shown
+    grouped = companies.groupby(keys).agg(w=("w", "sum"), funds=("isin", "nunique"))
     grouped["w"] = grouped["w"] / equity_weight
     grouped = grouped.sort_values("w", ascending=False)
 
+    head = grouped.head(TOP_COMPANIES)
+    in_head = companies.set_index(keys).index.isin(head.index)
+    isins = companies[in_head].groupby(keys)["isin"].unique()
     top = tuple(
-        CompanyExposure(company=name, country=country, weight=float(row.w), fund_isins=row.isins)
-        for (name, country), row in grouped.head(TOP_COMPANIES).iterrows()
+        CompanyExposure(
+            company=name,
+            country=country,
+            weight=float(row.w),
+            fund_isins=tuple(sorted(isins[(name, country)])),
+        )
+        for (name, country), row in head.iterrows()
     )
     shares = grouped["w"] / grouped["w"].sum()
     effective = float(1.0 / (shares**2).sum())
-    shared = grouped[grouped["isins"].map(len) > 1]
+    shared = grouped[grouped["funds"] > 1]
     return (
         top,
         float(grouped["w"].head(TOP_COMPANIES).sum()),

@@ -92,6 +92,27 @@ def currency_name(code: str) -> str:
     return CURRENCY_NAMES.get(code, code)
 
 
+def with_reference(
+    items: Iterable[BreakdownItem], reference: Iterable[BreakdownItem] | None, n: int
+) -> list[tuple[str, float, float | None]]:
+    """`top_with_rest` plus the reference index's weight for each row (None without reference).
+
+    The reference's 'Resto' is everything it holds outside the rows shown, so both columns sum
+    to the same total and are read on the same scale.
+    """
+    rows = top_with_rest(items, n)
+    if reference is None:
+        return [(label, weight, None) for label, weight in rows]
+    ref = {item.label: item.weight for item in reference}
+    shown = {label for label, _ in rows if label != REST_NAME}
+    out = [(label, weight, ref.get(label, 0.0)) for label, weight in rows if label != REST_NAME]
+    rest = sum(weight for label, weight in rows if label == REST_NAME)
+    ref_rest = sum(weight for label, weight in ref.items() if label not in shown)
+    if rest > 0 or ref_rest > 0:
+        out.append((REST_NAME, rest, ref_rest))
+    return out
+
+
 def top_with_rest(items: Iterable[BreakdownItem], n: int) -> list[tuple[str, float]]:
     """The n largest items plus one 'Resto' bucket with the sum of the others (if any)."""
     items = list(items)

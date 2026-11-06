@@ -4,6 +4,82 @@ gatherUsageStats = false
 
 [server]
 maxUploadSize = 1
+# Fonts are served from app/static (no request to Google Fonts while the app runs).
+enableStaticServing = true
 
 [client]
 toolbarMode = "minimal"
+
+# Visual world: a topographic map sheet (see docs/DISENO.md).
+# Paper white, planimetry black, contour sienna = your portfolio, hydrography blue = world market,
+# road red only for problems.
+[theme]
+base = "light"
+primaryColor = "#B5542A"
+backgroundColor = "#FCFCFA"
+secondaryBackgroundColor = "#F1EFEA"
+textColor = "#1C1F22"
+borderColor = "#D9D5CC"
+linkColor = "#2A6FB0"
+redColor = "#C62E2E"
+blueColor = "#2A6FB0"
+greenColor = "#3C7A3B"
+orangeColor = "#B5542A"
+baseRadius = "3px"
+buttonRadius = "3px"
+showWidgetBorder = true
+font = "Barlow, sans-serif"
+headingFont = "'Barlow Condensed', 'Barlow', sans-serif"
+headingFontWeights = [700, 600, 600]
+headingFontSizes = ["3rem", "1.9rem", "1.35rem"]
+metricValueFontSize = "2.1rem"
+metricValueFontWeight = 600
+baseFontSize = 16
+
+[[theme.fontFaces]]
+family = "Barlow"
+url = "app/static/fonts/Barlow-Regular.ttf"
+weight = 400
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Barlow"
+url = "app/static/fonts/Barlow-Italic.ttf"
+weight = 400
+style = "italic"
+
+[[theme.fontFaces]]
+family = "Barlow"
+url = "app/static/fonts/Barlow-Medium.ttf"
+weight = 500
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Barlow"
+url = "app/static/fonts/Barlow-SemiBold.ttf"
+weight = 600
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Barlow Condensed"
+url = "app/static/fonts/BarlowCondensed-SemiBold.ttf"
+weight = 600
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Barlow Condensed"
+url = "app/static/fonts/BarlowCondensed-Bold.ttf"
+weight = 700
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Barlow Semi Condensed"
+url = "app/static/fonts/BarlowSemiCondensed-Medium.ttf"
+weight = 500
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Barlow Semi Condensed"
+url = "app/static/fonts/BarlowSemiCondensed-SemiBold.ttf"
+weight = 600
+style = "normal"

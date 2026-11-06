@@ -220,3 +220,29 @@ def test_young_portfolio_has_no_episodes_but_the_reference_does():
     assert by_key["2020"].portfolio is None
     assert by_key["2022"].portfolio is not None
     assert by_key["2022"].portfolio < by_key["2022"].reference  # 1.5x falls more
+
+
+def test_drawdown_profile_starts_both_series_at_their_peak():
+    days = pd.date_range("2020-01-03", periods=3, freq="D")
+    portfolio = pd.Series([1.0, 0.8, 1.0], index=days)
+    reference = pd.Series(2.0, index=pd.date_range("2019-12-01", "2020-01-05", freq="D"))
+    reference.loc["2019-12-15"] = 3.0  # a peak before the portfolio starts: ignored
+    reference.loc["2020-01-04"] = 1.5
+    profile = rk.drawdown_profile(portfolio, reference)
+    assert [p.day for p in profile] == [date(2020, 1, 3), date(2020, 1, 4), date(2020, 1, 5)]
+    assert [p.portfolio for p in profile] == [0.0, pytest.approx(-0.2), 0.0]
+    assert [p.reference for p in profile] == [0.0, pytest.approx(-0.25), 0.0]
+
+
+def test_profile_without_reference():
+    days = pd.date_range("2020-01-03", periods=8, freq="D")
+    profile = rk.drawdown_profile(pd.Series(1.0, index=days), None)
+    assert profile and all(p.reference is None for p in profile)
+
+
+def test_weekly_windows_never_end_after_the_data():
+    # data end on Wednesday 15 January 2020: the last week must not be labelled Friday 17
+    daily = _days([0.001] * 10, start="2020-01-02")
+    assert daily.index[-1] == pd.Timestamp("2020-01-15")
+    weekly = rk.weekly_returns(daily, pd.Timestamp("2020-01-01"))
+    assert weekly.index[-1] == pd.Timestamp("2020-01-15")

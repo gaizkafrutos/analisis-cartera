@@ -1,0 +1,150 @@
+/* Radiografía de cartera: a topographic map sheet (docs/DISENO.md).
+   Loaded once by streamlit_app.py. Colours repeat .streamlit/config.toml on purpose: Streamlit
+   themes widgets, this sheet themes what the theme cannot reach. */
+
+:root {
+  --paper: #fcfcfa;
+  --margin: #f1efea;
+  --ink: #1c1f22;
+  --ink-2: #565b60;
+  --rule: #d9d5cc;
+  --contour: #b5542a;
+  --contour-soft: #e3c3ae;
+  --water: #2a6fb0;
+  --wood: #3c7a3b;
+  --road: #c62e2e;
+  --label: "Barlow Semi Condensed", "Barlow", sans-serif;
+  --display: "Barlow Condensed", "Barlow", sans-serif;
+}
+
+/* --- browser surfaces ------------------------------------------------------------------------ */
+::selection { background: var(--contour-soft); color: var(--ink); }
+html { scrollbar-color: var(--rule) var(--paper); }
+:focus-visible { outline: 2px solid var(--water); outline-offset: 2px; }
+a { text-underline-offset: 0.18em; }
+[data-testid="stHeader"] { background: transparent; }
+.block-container { padding-top: 2.25rem; padding-bottom: 4rem; }
+
+/* tabular figures wherever numbers are read in columns */
+[data-testid="stMetricValue"], .cartouche dd, .js-plotly-plot text { font-variant-numeric: tabular-nums; }
+
+/* --- headings: more space above than below --------------------------------------------------- */
+[data-testid="stHeading"] h2 {
+  margin-top: 2.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--ink);
+  letter-spacing: -0.005em;
+}
+[data-testid="stHeading"] h3 { margin-top: 1.75rem; letter-spacing: 0; }
+
+/* --- masthead ------------------------------------------------------------------------------- */
+.sheet-head { position: relative; padding: 0.25rem 0 1.4rem; border-bottom: 3px double var(--ink); }
+.sheet-head::before {
+  content: ""; position: absolute; top: -2.25rem; right: -1rem; bottom: 0; width: min(560px, 74%);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 40%);
+  mask-image: linear-gradient(to right, transparent, #000 40%);
+  background-repeat: no-repeat; background-position: right center; background-size: cover;
+  pointer-events: none;
+}
+.sheet-head .title { position: relative; max-width: 30rem; }
+.sheet-head h1 {
+  font-family: var(--display); font-weight: 700; font-size: clamp(2.6rem, 9vw, 4.1rem);
+  line-height: 0.92; letter-spacing: -0.02em; margin: 0; padding: 0; color: var(--ink);
+}
+.sheet-head p.tagline {
+  font-size: 1.12rem; line-height: 1.4; color: var(--ink-2); margin: 0.85rem 0 0; max-width: 24rem;
+}
+.sheet-head p.tagline em { font-style: italic; color: var(--water); }
+
+/* --- disclaimer as the sheet's margin note --------------------------------------------------- */
+.st-key-disclaimer [data-testid="stAlert"] > div {
+  background: transparent; border: 0; border-left: 0; padding: 0.6rem 0 0; color: var(--ink-2);
+}
+.st-key-disclaimer [data-testid="stAlertContainer"] { background: transparent; padding: 0; }
+.st-key-disclaimer [data-testid="stMarkdownContainer"] p {
+  font-size: 0.86rem; line-height: 1.45; color: var(--ink-2);
+}
+.st-key-disclaimer [data-testid="stAlertDynamicIcon"] { display: none; }
+
+/* --- cartouche: the title block of the analysed sheet --------------------------------------- */
+.cartouche {
+  border: 1.5px solid var(--ink); padding: 0.2rem; margin: 0.6rem 0 1.4rem; background: var(--paper);
+}
+.cartouche .inner { border: 0.5px solid var(--ink); padding: 0.85rem 1rem 0.9rem; }
+.cartouche .scale {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.9rem;
+  padding-bottom: 0.6rem; margin-bottom: 0.7rem; border-bottom: 0.5px solid var(--rule);
+}
+.cartouche .scale strong {
+  font-family: var(--display); font-weight: 700; font-size: 2rem; line-height: 1; letter-spacing: -0.01em;
+}
+.cartouche .scale span { color: var(--ink-2); font-size: 0.98rem; }
+.cartouche dl { padding: 0; display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; margin: 0; }
+.cartouche dt {
+  font-family: var(--label); font-weight: 600; font-size: 0.78rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--ink-2); padding-top: 0.12rem;
+}
+.cartouche dt { margin: 0; }
+.cartouche dd { margin: 0; font-size: 0.95rem; line-height: 1.35; }
+@media (max-width: 520px) {
+  .cartouche dl { grid-template-columns: 1fr; gap: 0.05rem; }
+  .cartouche dd { margin-bottom: 0.45rem; }
+}
+
+/* surveyed vs not surveyed: solid ink vs hatch (cartographic convention for unmapped land) */
+.survey { display: flex; height: 0.7rem; border: 0.5px solid var(--ink); margin: 0.3rem 0 0.2rem; max-width: 18rem; }
+.survey .done { background: var(--ink); }
+.survey .gap {
+  flex: 1;
+  background: repeating-linear-gradient(135deg, var(--road) 0 1px, transparent 1px 5px);
+}
+.survey-note { font-size: 0.86rem; color: var(--ink-2); }
+
+/* --- legend (plain-language summary) --------------------------------------------------------- */
+.st-key-legend { gap: 0; }
+.st-key-legend [data-testid="stMarkdown"], .st-key-legend [data-testid="stMarkdownContainer"] { margin-bottom: 0 !important; }
+.st-key-legend [data-testid="stMarkdownContainer"] p {
+  font-size: 1.06rem; line-height: 1.5; margin: 0; padding: 0.8rem 0 0.8rem 2.1rem; position: relative;
+  border-top: 0.5px solid var(--rule); max-width: 68ch;
+}
+.st-key-legend p > span[role="img"]:first-child {
+  position: absolute; left: 0; top: 0.85rem; color: var(--contour); font-size: 1.35rem !important;
+}
+.st-key-legend [data-testid="stElementContainer"]:last-child p { border-bottom: 0.5px solid var(--rule); }
+
+/* --- metrics as spot heights --------------------------------------------------------------- */
+[data-testid="stMetric"] { padding: 0.2rem 0 0.1rem; }
+[data-testid="stMetricLabel"] p {
+  font-family: var(--label); font-weight: 600; font-size: 0.8rem !important; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--ink-2);
+}
+[data-testid="stMetricValue"] { font-family: var(--display); letter-spacing: -0.01em; color: var(--ink); }
+[data-testid="stCaptionContainer"] { color: var(--ink-2); opacity: 1; }
+
+/* --- tabs as the sheet index --------------------------------------------------------------- */
+[data-baseweb="tab-list"] { border-bottom: 1px solid var(--ink); }
+button[data-baseweb="tab"] p {
+  font-family: var(--label); font-weight: 600; font-size: 0.95rem; text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+button[data-baseweb="tab"][aria-selected="true"] p { color: var(--contour); }
+/* own underline: Streamlit measures its highlight before the web font loads and misplaces it */
+[data-baseweb="tab-highlight"] { display: none; }
+button[data-baseweb="tab"][aria-selected="true"] { box-shadow: inset 0 -3px 0 var(--contour); }
+[data-baseweb="tab-border"] { display: none; }
+
+/* --- method notes -------------------------------------------------------------------------- */
+[data-testid="stExpander"] details { border-radius: 0; border-color: var(--rule); background: transparent; }
+[data-testid="stExpander"] summary p { font-size: 0.92rem; color: var(--ink-2); }
+[data-testid="stExpander"] summary:hover p { color: var(--water); }
+
+/* --- unsurveyed (not available) ----------------------------------------------------------- */
+[class*="st-key-unsurveyed"] [data-testid="stAlert"] > div {
+  background: repeating-linear-gradient(135deg, rgba(198, 46, 46, 0.09) 0 1px, transparent 1px 7px);
+  border: 0.5px dashed var(--ink-2); color: var(--ink);
+}
+
+/* --- footer ------------------------------------------------------------------------------- */
+.st-key-footer { border-top: 3px double var(--ink); margin-top: 2.5rem; padding-top: 0.6rem; }
+.st-key-footer [data-testid="stCaptionContainer"] p { font-size: 0.84rem; }
+

@@ -38,6 +38,8 @@ class AnalysisReport(BaseModel):
     returns: ReturnsResult
     risk: RiskResult
     summary: Summary
+    reference: LookThroughResult | None = None
+    """Look-through of the reference index (iShares MSCI ACWI), to compare exposures with."""
 
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
@@ -161,4 +163,5 @@ def analyze(
         returns=returns,
         risk=risk,
         summary=build_summary(portfolio, costs, lookthrough, returns, risk, names, reference),
+        reference=reference,
     )

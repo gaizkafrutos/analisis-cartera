@@ -10,8 +10,11 @@ Portfolio (current weights held constant, i.e. rebalanced every day):
     r_portfolio_t = sum(w_i x r_i,t), weights re-scaled to the covered part.
     Common window: from the launch of the youngest ETF; on a day an ETF has no NAV (holiday)
     its value is carried forward (0 % return that day).
-Annualised return over the window:
+Annualised return over the last 5 years (or the whole window if it is shorter):
     (final value / initial value) ^ (365.25 / calendar days) - 1
+    A fixed 5-year window makes portfolios comparable: over each one's whole window, a portfolio
+    whose youngest ETF started in 2017 and another one starting in 2010 cover different years
+    (finding of AUDITORIA.md).
 
 Assumptions and limitations (also in docs/METODOLOGIA.md):
     - It is a simulation of today's weights in the past, not the user's actual return.
@@ -38,6 +41,7 @@ from radiografia.domain.portfolio import CoverageStatus, Portfolio
 ANNUALISED_RETURN = "annualised_return"
 
 MIN_YEARS_FOR_ANNUALISED = 1.0
+RETURN_WINDOW_YEARS = 5
 SHORT_HISTORY_YEARS = 3.0
 DAYS_PER_YEAR = 365.25
 
@@ -124,6 +128,21 @@ def annualised_return(returns: pd.Series, window_start: pd.Timestamp) -> float:
     growth = float((1 + returns).prod())
     years = (returns.index[-1] - window_start).days / DAYS_PER_YEAR
     return growth ** (1 / years) - 1
+
+
+def trailing_window(
+    returns: pd.Series, window_start: pd.Timestamp, years: int
+) -> tuple[pd.Series, pd.Timestamp]:
+    """Returns of the last `years` years and the date whose value is the starting point.
+
+    The starting point is the last date on or before (last date - `years`); if the history is
+    shorter, the whole series from `window_start`.
+    """
+    cutoff = returns.index[-1] - pd.DateOffset(years=years)
+    if cutoff <= window_start:
+        return returns, window_start
+    base = returns.index[returns.index <= cutoff][-1]
+    return returns[returns.index > base], base
 
 
 def build_portfolio_series(
@@ -243,7 +262,8 @@ def compute_returns(
         warnings.append(WARNING_FX_TIMING)
     if years < SHORT_HISTORY_YEARS:
         warnings.append(WARNING_SHORT_HISTORY)
-    value: float | None = annualised_return(series.returns, start)
+    recent, base = trailing_window(series.returns, start, RETURN_WINDOW_YEARS)
+    value: float | None = annualised_return(recent, base)
     status = MetricStatus.AVAILABLE if covered >= 1 - 1e-12 else MetricStatus.PARTIAL
     if years < MIN_YEARS_FOR_ANNUALISED:
         value, status = None, MetricStatus.NOT_AVAILABLE
@@ -254,9 +274,9 @@ def compute_returns(
         unit=Unit.FRACTION,
         status=status,
         coverage=coverage,
-        window_start=series.window_start,
+        window_start=base.date(),
         window_end=series.window_end,
-        observations=len(series.returns),
+        observations=len(recent),
         warnings=tuple(warnings),
     )
     return (

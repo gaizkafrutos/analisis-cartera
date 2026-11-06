@@ -129,3 +129,38 @@ def test_service_without_snapshot_still_summarises_costs():
     rows = [RawPosition(identifier="EUNL", amount_eur=1000)]
     report = service.analyze(service.read_portfolio_rows(rows).portfolio, snapshot=None)
     assert [p.topic for p in report.summary.points] == [sm.Topic.COSTS]
+
+
+def _risk_with_episodes(portfolio_2020, portfolio_2022, reference=(-0.34, -0.16)):
+    from radiografia.analytics.risk import EPISODE_DEFINITIONS, EpisodeDrawdown
+
+    values = (portfolio_2020, portfolio_2022)
+    episodes = tuple(
+        EpisodeDrawdown(
+            key=e.key, label=e.label, start=e.start, end=e.end, portfolio=p, reference=r
+        )
+        for e, p, r in zip(EPISODE_DEFINITIONS, values, reference, strict=True)
+    )
+    empty = compute_risk(None, 10000, None, None, None, 1.0)
+    return empty.model_copy(update={"episodes": episodes})
+
+
+def test_risk_point_compares_each_episode_with_the_market():
+    point = sm.risk_point(_risk_with_episodes(-0.307, -0.285))
+    assert point.topic is sm.Topic.RISK
+    assert "en 2020 (covid) la cartera habría llegado a caer un 30,7 %" in point.text
+    assert "frente a un 34,0 % del mercado mundial" in point.text
+    assert "en 2022 (inflación y subida de tipos), un 28,5 %, frente a un 16,0 %" in point.text
+
+
+def test_risk_point_skips_episodes_without_portfolio_data():
+    point = sm.risk_point(_risk_with_episodes(None, -0.20))
+    assert "2020" not in point.text
+    assert "en 2022 (inflación y subida de tipos) la cartera habría llegado a caer" in point.text
+
+
+def test_summary_leaves_out_var_alpha_and_simulated_return():
+    assert "returns" not in {topic.value for topic in sm.Topic}
+    risk = _risk_with_episodes(-0.30, -0.20)
+    texts = sm.risk_point(risk).text
+    assert "1 de cada 20" not in texts  # VaR

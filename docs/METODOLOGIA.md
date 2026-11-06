@@ -179,8 +179,12 @@ Código: `scripts/build_prices.py`, `radiografia.data.sources.ishares_prices`,
 - **Cartera:** pesos actuales constantes (rebalanceo diario), reescalados a la parte cubierta.
   Ventana común desde el lanzamiento del ETF más reciente; un día sin NAV de un ETF cuenta como
   0 % para él.
-- **Anualizada:** (valor final ÷ inicial)^(365,25 / días) − 1. No se anualiza con menos de un año
-  de historia común; con menos de tres se avisa.
+- **Anualizada:** (valor final ÷ inicial)^(365,25 / días) − 1, sobre los **últimos 5 años**
+  (el punto de partida es el último dato en o antes de esa fecha); si la historia común es más
+  corta, sobre toda ella. Antes se usaba toda la ventana común, y dos carteras con ETFs de distinta
+  edad se comparaban en años distintos (2010-2026 frente a 2017-2026): ver `AUDITORIA.md`. No se
+  anualiza con menos de un año de historia común; con menos de tres se avisa. La serie completa
+  se sigue usando para las caídas en episodios.
 - **No cubiertos:** ETFs fuera del universo, sin NAV, o de distribución sin datos de repartos.
 - **Validación:** rentabilidades anuales de los 15 ETFs frente a las publicadas por iShares, en la
   divisa del NAV. Ver `docs/VALIDACION.md`.
@@ -196,6 +200,7 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
 
 | Métrica | Datos | Ventana | Cálculo |
 |---|---|---|---|
+| Caídas en episodios | Diarios | Años naturales 2020 y 2022 | Peor valor ÷ máximo anterior − 1 dentro del año, partiendo del valor al empezarlo; igual para el iShares MSCI ACWI |
 | Volatilidad | Semanales (cierres de viernes) | 5 años | Desviación típica muestral × √52 |
 | Máxima caída | Diarios | Toda la ventana común | Peor valor ÷ máximo anterior − 1, con fechas |
 | VaR 95 % y pérdida esperada | Diarios | 5 años | Percentil 5 (interpolación lineal) y media de la cola |
@@ -210,6 +215,17 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
 - **Renta variable < 80 % de la parte cubierta:** la beta se muestra con aviso; el alpha no se
   muestra, porque frente a un índice de acciones daría un valor engañoso (ver glosario).
 - **VaR en euros:** VaR × importe cubierto.
+- **Episodios fijos (tras la auditoría):** la máxima caída de toda la ventana no sirve para
+  comparar carteras, porque cada una tiene su peor momento en un año distinto (la cartera
+  concentrada en tecnología salía "menos arriesgada" que el MSCI World: −30,7 % frente a −33,9 %,
+  ambos en 2020, pero en 2022 cayó un 28,5 % y el World un 16,9 %). Por eso la interfaz y el
+  resumen muestran las caídas de 2020 (caída rápida de las bolsas) y 2022 (bajada a la vez de
+  acciones y bonos), siempre junto a la del MSCI ACWI en las mismas fechas. Si la serie de la
+  cartera no cubre el año entero (algún ETF no existía), ese episodio no se muestra: nunca se
+  estima. La máxima caída, el VaR y el alpha se siguen calculando, pero quedan en un desplegable
+  de "otras medidas técnicas" y fuera del resumen: el VaR coincide en las cuatro carteras de
+  prueba con 1,645 × la desviación típica diaria (no añade nada a la volatilidad) y el intervalo
+  del alpha casi siempre incluye el cero.
 - **Validación:** volatilidad a 3 años (36 meses, en la divisa del NAV) de los 15 ETFs frente a la
   que publica iShares; ver `docs/VALIDACION.md`. La beta publicada por iShares es frente a su
   propio índice, del que no tenemos la serie: no se puede contrastar.
@@ -223,7 +239,10 @@ Código: `radiografia.reporting.summary.build_summary`.
   estima para rellenar.
 - **Orden:** cobertura (si falta algo), reparto acciones/bonos (si hay bonos), costes, país,
   divisa, concentración, solapamiento (si es notable: ≥ 30 %; ≥ 90 % se describe como "las mismas
-  empresas"), máxima caída y VaR en euros, sensibilidad al mercado y alpha, rentabilidad simulada.
+  empresas"), caídas en 2020 y 2022 frente al MSCI ACWI, sensibilidad al mercado (beta).
+- **Fuera del resumen tras la auditoría** (siguen en las pestañas): VaR, alpha, rentabilidad
+  simulada (invita a leerla como previsión) y peso en empresas compartidas (se malinterpreta
+  fácilmente; el solapamiento por pares dice lo mismo con más claridad).
 - **Comparación:** solo con el índice de referencia (iShares MSCI ACWI, abierto con el mismo
   look-through), como punto neutro. Nunca con otros productos.
 - **Lenguaje:** describe, no recomienda. Un test busca palabras prohibidas ("deberías",

@@ -4,8 +4,9 @@ The assertions are relationships each example is built to show, not exact number
 when the snapshot is refreshed:
     - global diversified: 70 % equity / 30 % bonds, World and emerging markets do not overlap,
       alpha is not shown (equity under 80 %), beta below 1;
-    - concentrated: almost only US technology, few effective companies, high beta and a very
-      wide alpha interval;
+    - concentrated: almost only US technology, few effective companies, high beta, a very
+      wide alpha interval and a 2022 fall much deeper than the world market's (the case the
+      whole-window maximum drawdown hid, see AUDITORIA.md);
     - overlapping: World and S&P 500 share most of their content, more US than the World alone.
 """
 
@@ -53,6 +54,7 @@ def test_every_section_is_available(key):
         assert metric.status is not MetricStatus.NOT_AVAILABLE, metric.key
     topics = {point.topic for point in report.summary.points}
     assert {Topic.COSTS, Topic.GEOGRAPHY, Topic.CURRENCY, Topic.RISK, Topic.MARKET} <= topics
+    assert all(e.portfolio is not None and e.reference is not None for e in report.risk.episodes)
     assert report.model_dump_json()
 
 
@@ -77,6 +79,8 @@ def test_concentrated():
     interval = report.risk.alpha.interval
     assert interval.high - interval.low > 0.10  # alpha is very uncertain
     assert interval.low < 0 < interval.high
+    episode_2022 = next(e for e in report.risk.episodes if e.key == "2022")
+    assert episode_2022.portfolio < episode_2022.reference - 0.05
 
 
 def test_overlapping():

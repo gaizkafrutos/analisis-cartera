@@ -195,8 +195,10 @@ no se puede contrastar, porque es frente a su propio índice y no tenemos esa se
   las capturas del README tienen el mismo problema.
 
 **Orden recomendado a partir de aquí:**
-1. Quitar o rebajar alpha, VaR y la rentabilidad simulada, y sustituir la máxima caída por
-   episodios fijos.
+1. ~~Quitar o rebajar alpha, VaR y la rentabilidad simulada, y sustituir la máxima caída por
+   episodios fijos.~~ Hecho: caídas en 2020 y 2022 frente al MSCI ACWI en la interfaz y el
+   resumen; rentabilidad simulada a 5 años y fuera del resumen; máxima caída, VaR y alpha en un
+   desplegable de "otras medidas técnicas"; peso en empresas compartidas rebajado a una nota.
 2. Ampliar la cobertura a otras gestoras (empezando por Vanguard y Xtrackers) con una clave de
    empresa común.
 3. Resolver el permiso de datos o elegir otra fuente.

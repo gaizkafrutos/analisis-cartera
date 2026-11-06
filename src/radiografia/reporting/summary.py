@@ -5,6 +5,9 @@ Rules (CLAUDE.md, "Regulación y lenguaje"):
     - A point is left out when its metric is not available: nothing is estimated to fill a gap.
     - Describe, never recommend: no "deberías", no buy/sell/switch, no alternative products.
     - Comparisons are only with the reference index (iShares MSCI ACWI), as a neutral benchmark.
+    - Left out after the audit (AUDITORIA.md), still in the detail tabs: VaR (adds nothing to the
+      volatility), alpha (almost always indistinguishable from zero), the simulated return
+      (invites reading it as a forecast) and the weight in shared companies (easy to misread).
 """
 
 from __future__ import annotations
@@ -46,7 +49,6 @@ class Topic(StrEnum):
     OVERLAP = "overlap"
     RISK = "risk"
     MARKET = "market"
-    RETURNS = "returns"
 
 
 class SummaryPoint(BaseModel):
@@ -227,15 +229,25 @@ def overlap_point(lookthrough: LookThroughResult, names: dict[str, str]) -> Summ
         text = f"El {_pct(pair.overlap)} del contenido de {a} y {b} es el mismo."
     else:
         return None
-    if _ok(lookthrough.shared_companies_weight):
-        text += (
-            f" En total, el {_pct(lookthrough.shared_companies_weight.value)} de tu renta "
-            f"variable está en empresas que aparecen en más de uno de tus ETFs."
-        )
     return SummaryPoint(topic=Topic.OVERLAP, text=text)
 
 
 def risk_point(risk: RiskResult) -> SummaryPoint | None:
+    """Falls in fixed episodes, compared with the reference index on the same dates."""
+    episodes = [e for e in risk.episodes if e.portfolio is not None]
+    if episodes:
+        parts = []
+        for i, e in enumerate(episodes):
+            part = f"en {e.label}" + (" la cartera habría llegado a caer" if i == 0 else ",")
+            part += f" un {format_percent(abs(e.portfolio), 1)}"
+            if e.reference is not None:
+                market = " del mercado mundial de acciones" if i == 0 else ""
+                part += f", frente a un {format_percent(abs(e.reference), 1)}{market}"
+            parts.append(part)
+        text = "Con tu reparto actual, " + "; ".join(parts) + "."
+        return SummaryPoint(topic=Topic.RISK, text=text)
+
+    # no complete episode in the data (recent ETFs): worst fall of the available window
     if not (_ok(risk.max_drawdown) and risk.drawdown):
         return None
     dd = risk.drawdown
@@ -249,11 +261,6 @@ def risk_point(risk: RiskResult) -> SummaryPoint | None:
         text += f", y tardó unos {_months_between(dd.trough, dd.recovered)} meses en recuperarse."
     else:
         text += ", y a la fecha de los datos aún no se había recuperado."
-    if risk.var_95_1d_eur is not None:
-        text += (
-            f" En 1 de cada 20 días de los últimos 5 años perdió al menos "
-            f"{format_eur(risk.var_95_1d_eur, 0)}."
-        )
     return SummaryPoint(topic=Topic.RISK, text=text)
 
 
@@ -270,34 +277,7 @@ def market_point(risk: RiskResult) -> SummaryPoint | None:
             " Con tanta renta fija, compararla con un índice de acciones dice poco: tómalo como "
             "orientación."
         )
-    alpha = risk.alpha
-    if _ok(alpha) and alpha.interval is not None:
-        low, high = alpha.interval.low, alpha.interval.high
-        if low <= 0 <= high:
-            text += (
-                " Descontado eso, la diferencia con el mercado no se distingue de cero "
-                f"(entre {format_percent(low, 1)} y {format_percent(high, 1)} al año)."
-            )
-        else:
-            text += (
-                " Descontado eso, la diferencia con el mercado está entre "
-                f"{format_percent(low, 1)} y {format_percent(high, 1)} al año, con incertidumbre."
-            )
     return SummaryPoint(topic=Topic.MARKET, text=text)
-
-
-def returns_point(returns: ReturnsResult) -> SummaryPoint | None:
-    metric = returns.annualised_return
-    if not _ok(metric):
-        return None
-    return SummaryPoint(
-        topic=Topic.RETURNS,
-        text=(
-            f"Con tu reparto actual, desde el {format_date(metric.window_start)} habría rendido "
-            f"de media un {format_percent(metric.value, 1)} al año en euros. Es una simulación "
-            f"del pasado, no tu rentabilidad ni una previsión."
-        ),
-    )
 
 
 def build_summary(
@@ -319,6 +299,5 @@ def build_summary(
         overlap_point(lookthrough, fund_names),
         risk_point(risk),
         market_point(risk),
-        returns_point(returns),
     ]
     return Summary(points=tuple(point for point in candidates if point is not None))

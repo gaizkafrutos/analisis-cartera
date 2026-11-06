@@ -215,10 +215,11 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 | Beta/alpha | Semanales, 5 años, frente al iShares MSCI ACWI en EUR, sobre el €STR (BCE); alpha con intervalo al 95 % | tomada |
 | Alpha con poca renta variable | Si la renta variable es < 80 % de la parte cubierta, el alpha no se muestra (sería engañoso) | tomada |
 | Ventanas de riesgo | 5 años para volatilidad, VaR, beta y alpha; toda la historia para la máxima caída | tomada |
+| Caídas para comparar | Episodios fijos 2020 y 2022 junto al MSCI ACWI; la máxima caída de toda la ventana, el VaR y el alpha quedan en "otras medidas técnicas" y fuera del resumen (AUDITORIA.md) | tomada |
 | VaR | Histórico, 95 %, 1 día, con pérdida esperada en la cola | tomada |
 | Divisa de clases cubiertas | 100 % en la divisa de cobertura (supuesto avisado; las posiciones no permiten calcularla) | tomada |
 | Tracking difference | Dato de la gestora a 5 años; no se muestra en clases cubiertas | tomada |
-| Rentabilidad histórica | Solo como contexto en riesgo, simulada, con aviso; nunca proyectada | tomada |
+| Rentabilidad histórica | Solo como contexto en riesgo, simulada, últimos 5 años (misma ventana para todas las carteras), con aviso; nunca proyectada ni en el resumen | tomada |
 | Renta fija en divisa | Se incluye en la exposición por divisa; no en empresas, país ni sector | tomada |
 | Datos reales en git | No: snapshots en `.gitignore`; solo fixtures pequeñas/sintéticas | tomada |
 | Precios/rentabilidades | NAV de iShares + tipos de cambio del BCE; yfinance descartado | tomada |

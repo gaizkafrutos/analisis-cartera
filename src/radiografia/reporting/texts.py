@@ -214,8 +214,8 @@ METRIC_TEXTS.update(
         returns.ANNUALISED_RETURN: MetricText(
             title="Rentabilidad anual histórica (simulada)",
             one_liner=(
-                "Lo que habría rendido cada año tu reparto actual en el periodo indicado, en "
-                "euros. No es tu rentabilidad real ni una previsión."
+                "Lo que habría rendido de media cada año tu reparto actual en los últimos 5 "
+                "años, en euros. No es tu rentabilidad real ni una previsión."
             ),
             how_it_is_computed=(
                 "Valor liquidativo diario de cada ETF con sus repartos reinvertidos, pasado a "
@@ -223,7 +223,10 @@ METRIC_TEXTS.update(
             ),
             limitations=(
                 "Supone que mantienes los pesos actuales todos los días del periodo.",
-                "El periodo empieza cuando empezó a cotizar el ETF más reciente de tu cartera.",
+                "Siempre los últimos 5 años, para que dos carteras se comparen en las mismas "
+                "fechas; si algún ETF tiene menos historia, desde que empezó a cotizar.",
+                "Cinco años son pocos: el resultado depende mucho de cómo le fue al mercado en "
+                "ese tramo concreto.",
                 "Rentabilidades pasadas no garantizan rentabilidades futuras.",
             ),
         ),
@@ -283,6 +286,25 @@ METRIC_TEXTS.update(
             limitations=(
                 "Trata igual las subidas que las bajadas.",
                 "Depende de la frecuencia: con datos diarios o mensuales sale distinta.",
+            ),
+        ),
+        risk.EPISODE_DRAWDOWNS: MetricText(
+            title="Caídas en dos crisis recientes",
+            one_liner=(
+                "Cuánto llegó a bajar tu reparto actual desde su máximo en 2020 y en 2022, "
+                "comparado con el mercado mundial de acciones en las mismas fechas."
+            ),
+            how_it_is_computed=(
+                "Para cada año se parte del valor al empezar el año y se busca la mayor bajada "
+                "desde un máximo anterior dentro de ese año, con datos diarios en euros. Lo mismo "
+                "con el iShares MSCI ACWI (mercado mundial de acciones)."
+            ),
+            limitations=(
+                "Son dos episodios de distinto tipo (2020, caída rápida de las bolsas; 2022, "
+                "bajada a la vez de acciones y bonos), pero no los únicos posibles: no incluyen "
+                "2008 ni crisis más largas.",
+                "Simula tus pesos actuales en el pasado; no es lo que te pasó a ti.",
+                "Si algún ETF no existía al empezar el año, ese episodio no se muestra.",
             ),
         ),
         risk.MAX_DRAWDOWN: MetricText(

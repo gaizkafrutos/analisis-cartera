@@ -38,16 +38,14 @@ def test_summary_is_complete_and_consistent(report):
         Topic.CONCENTRATION,
         Topic.RISK,
         Topic.MARKET,
-        Topic.RETURNS,
     }
     assert expected <= set(texts)
     assert format_eur(result.costs.annual_cost.value) in texts[Topic.COSTS]
     if name == "bonds_and_outside":
         assert {Topic.COVERAGE, Topic.ASSET_MIX} <= set(texts)
         assert "dice poco" in texts[Topic.MARKET]  # beta caution with mostly bonds
-        assert "no se distingue" not in texts[Topic.MARKET]  # alpha not shown
-    else:
-        assert "no se distingue de cero" in texts[Topic.MARKET]
+    assert "mercado mundial" in texts[Topic.RISK]  # episodes compared with the ACWI
+    assert "1 de cada 20" not in texts[Topic.RISK]  # VaR left out after the audit
 
 
 def test_summary_never_recommends(report):

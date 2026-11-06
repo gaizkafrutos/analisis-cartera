@@ -157,3 +157,66 @@ def test_no_series_means_everything_not_available():
     result = rk.compute_risk(None, 10000, None, None, None, 0.0)
     assert result.volatility.status is MetricStatus.NOT_AVAILABLE
     assert result.var_95_1d_eur is None
+
+
+# --- drawdowns in fixed episodes -----------------------------------------------------------------
+
+
+def _values(points):
+    return pd.Series(
+        [v for _, v in points], index=pd.DatetimeIndex([pd.Timestamp(d) for d, _ in points])
+    )
+
+
+def test_drawdown_in_period_starts_from_the_value_before_the_period():
+    values = _values(
+        [
+            ("2019-12-31", 100.0),  # starting peak
+            ("2020-03-01", 70.0),  # -30 %
+            ("2020-06-01", 120.0),  # new peak inside the period
+            ("2020-09-01", 108.0),  # -10 % from it: not the worst
+            ("2021-01-04", 50.0),  # after the period: ignored
+        ]
+    )
+    assert rk.drawdown_in_period(values, date(2020, 1, 1), date(2020, 12, 31)) == pytest.approx(
+        -0.30
+    )
+
+
+def test_drawdown_in_period_ignores_an_earlier_peak():
+    # a fall that started before the period does not count, only what happens inside it
+    values = _values([("2019-06-01", 200.0), ("2019-12-31", 100.0), ("2020-12-31", 90.0)])
+    assert rk.drawdown_in_period(values, date(2020, 1, 1), date(2020, 12, 31)) == pytest.approx(
+        -0.10
+    )
+
+
+def test_drawdown_in_period_needs_the_whole_period():
+    values = _values([("2020-02-01", 100.0), ("2020-12-31", 80.0)])  # starts after 1 January
+    assert rk.drawdown_in_period(values, date(2020, 1, 1), date(2020, 12, 31)) is None
+    values = _values([("2019-12-31", 100.0), ("2020-06-30", 80.0)])  # ends before 31 December
+    assert rk.drawdown_in_period(values, date(2020, 1, 1), date(2020, 12, 31)) is None
+
+
+def test_episodes_compare_portfolio_and_reference():
+    portfolio = _values([("2019-12-31", 1.0), ("2020-03-20", 0.75), ("2022-12-31", 0.9)])
+    reference = _values([("2019-12-31", 1.0), ("2020-03-20", 0.66), ("2022-12-31", 0.9)])
+    first, second = rk.episode_drawdowns(portfolio, reference)
+    assert (first.key, first.portfolio, first.reference) == (
+        "2020",
+        pytest.approx(-0.25),
+        pytest.approx(-0.34),
+    )
+    assert second.key == "2022"
+
+
+def test_young_portfolio_has_no_episodes_but_the_reference_does():
+    # the synthetic portfolio of these tests starts in 2021: 2020 is not estimated
+    portfolio = 1.5 * BENCH_WEEKLY
+    result = rk.compute_risk(
+        _series(portfolio), 10000, _benchmark_index(), "ACWI", ESTR_ZERO, equity_share=1.0
+    )
+    by_key = {e.key: e for e in result.episodes}
+    assert by_key["2020"].portfolio is None
+    assert by_key["2022"].portfolio is not None
+    assert by_key["2022"].portfolio < by_key["2022"].reference  # 1.5x falls more

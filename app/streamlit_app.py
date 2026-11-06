@@ -16,6 +16,7 @@ import streamlit as st
 
 from radiografia import service
 from radiografia.analytics.costs import CostLine
+from radiografia.analytics.risk import EPISODE_DRAWDOWNS, EpisodeDrawdown
 from radiografia.domain.metrics import BreakdownResult, MetricResult, MetricStatus
 from radiografia.domain.portfolio import CoverageStatus, PortfolioInputResult, RawPosition
 from radiografia.reporting import input_messages as im
@@ -121,26 +122,39 @@ def show_input_problems(result: PortfolioInputResult) -> bool:
 # --- building blocks --------------------------------------------------------------------------
 
 
-def explain(metrics: list[MetricResult | BreakdownResult], extra: str | None = None) -> None:
-    """'How is it computed' expander: method, limitations, warnings, window and data date."""
+def method_texts(keys: list[str], warnings: list[str]) -> None:
+    """Method, limitations and warnings of the given metric keys (Markdown, no container)."""
+    for key in keys:
+        text = texts.METRIC_TEXTS.get(key)
+        if text is not None:
+            st.markdown(f"**{text.title}.** {text.how_it_is_computed}")
+            st.markdown("\n".join(f"- {limitation}" for limitation in text.limitations))
+    if warnings:
+        st.markdown("**Ten en cuenta:**")
+        st.markdown("\n".join(f"- {texts.WARNING_TEXTS[w]}" for w in warnings))
+
+
+def explain(
+    metrics: list[MetricResult | BreakdownResult],
+    extra: str | None = None,
+    keys: tuple[str, ...] = (),
+) -> None:
+    """'How is it computed' expander: method, limitations, warnings, window and data date.
+
+    `keys`: texts of results that are not a MetricResult (e.g. the crisis episodes), shown first.
+    """
     with st.expander("¿Cómo se calcula y qué limitaciones tiene?"):
         warnings: list[str] = []
         for metric in metrics:
-            text = texts.METRIC_TEXTS.get(metric.key)
-            if text is not None:
-                st.markdown(f"**{text.title}.** {text.how_it_is_computed}")
-                st.markdown("\n".join(f"- {limitation}" for limitation in text.limitations))
             warnings += [w for w in metric.warnings if w not in warnings]
-        if warnings:
-            st.markdown("**Ten en cuenta:**")
-            st.markdown("\n".join(f"- {texts.WARNING_TEXTS[w]}" for w in warnings))
+        method_texts([*keys, *(metric.key for metric in metrics)], warnings)
         details = []
-        first = metrics[0]
+        first = metrics[0] if metrics else None
         start = getattr(first, "window_start", None)
         end = getattr(first, "window_end", None)
         if start and end:
             details.append(f"Periodo: {format_date(start)} a {format_date(end)}.")
-        if first.data_as_of:
+        if first is not None and first.data_as_of:
             details.append(texts.DATA_DATE_NOTE.format(date=format_date(first.data_as_of)))
         if extra:
             details.append(extra)
@@ -292,7 +306,6 @@ def show_concentration(report: service.AnalysisReport) -> None:
         st.caption("Solo hay un ETF de renta variable: no hay nada que comparar.")
         return
     names = {line.isin: line.label for line in report.costs.lines if line.isin}
-    metric_card(st, lt.shared_companies_weight, format_percent(lt.shared_companies_weight.value, 0))
     st.markdown(
         "\n".join(
             f"- {short_fund_name(names.get(p.isin_a, p.isin_a))} y "
@@ -301,73 +314,121 @@ def show_concentration(report: service.AnalysisReport) -> None:
             for p in lt.overlaps
         )
     )
-    explain([lt.shared_companies_weight])
+    shared = lt.shared_companies_weight
+    if shared.value is not None:
+        st.caption(
+            f"{texts.METRIC_TEXTS[shared.key].title}: {format_percent(shared.value, 0)}. "
+            f"{texts.METRIC_TEXTS[shared.key].one_liner}"
+        )
+    explain([shared])
+
+
+def episode_chart(episodes: list[EpisodeDrawdown]) -> None:
+    labels = [e.label.replace(" (", "<br>(") for e in episodes]
+    figure = go.Figure()
+    for name, values in (
+        ("Tu cartera", [e.portfolio for e in episodes]),
+        ("Mercado mundial", [e.reference for e in episodes]),
+    ):
+        figure.add_bar(
+            name=name,
+            x=labels,
+            y=[v * 100 if v is not None else None for v in values],
+            text=[format_percent(v, 1) if v is not None else "" for v in values],
+            textposition="outside",
+            cliponaxis=False,
+            hoverinfo="skip",
+        )
+    deepest = min(min(e.portfolio, e.reference or 0) for e in episodes) * 100
+    figure.update_layout(
+        barmode="group",
+        height=300,
+        margin={"l": 0, "r": 0, "t": 10, "b": 10},
+        yaxis={"visible": False, "range": [deepest * 1.3, 0]},
+        legend={"orientation": "h", "y": -0.25, "x": 0},
+    )
+    st.plotly_chart(figure, config=CHART_CONFIG, width="stretch")
+
+
+def technical_line(metric: MetricResult, value_text: str, note: str | None = None) -> None:
+    text = texts.METRIC_TEXTS[metric.key]
+    st.markdown(f"**{text.title}: {value_text}.** {text.one_liner}")
+    if note:
+        st.caption(note)
 
 
 def show_risk(report: service.AnalysisReport) -> None:
     risk = report.risk
     if not_available(risk.volatility):
         return
+
+    title = texts.METRIC_TEXTS[EPISODE_DRAWDOWNS]
+    st.subheader(title.title)
+    st.caption(title.one_liner)
+    episodes = [e for e in risk.episodes if e.portfolio is not None]
+    if episodes:
+        episode_chart(episodes)
+    else:
+        st.info(
+            "Alguno de tus ETFs no existía en 2020 ni en 2022: no hay ningún episodio completo "
+            "que comparar."
+        )
+    coverage_note(risk.volatility)
+    explain([], keys=(EPISODE_DRAWDOWNS,))
+
+    st.subheader("Cuánto se mueve")
     left, right = st.columns(2)
     metric_card(left, risk.volatility, format_percent(risk.volatility.value, 1))
-    metric_card(right, risk.max_drawdown, format_percent(risk.max_drawdown.value, 1))
-    if risk.drawdown:
-        dd = risk.drawdown
-        recovered = (
-            f"recuperada el {format_date(dd.recovered)}"
-            if dd.recovered
-            else "aún no recuperada en la fecha de los datos"
-        )
+    if risk.beta.value is not None:
+        metric_card(right, risk.beta, format_number(risk.beta.value, 2))
+    extra = f"Índice de referencia: {risk.benchmark_name}." if risk.benchmark_name else None
+    if risk.r_squared is not None:
+        extra = (extra or "") + f" R²: {format_number(risk.r_squared, 2)}."
+    explain([risk.volatility, risk.beta], extra)
+
+    annualised = report.returns.annualised_return
+    if annualised.value is not None:
+        st.subheader("Contexto: rentabilidad pasada")
+        metric_card(st, annualised, format_percent(annualised.value, 1))
+        explain([annualised])
+
+    with st.expander("Otras medidas técnicas"):
         st.caption(
-            f"Peor caída: del {format_date(dd.peak)} al {format_date(dd.trough)}; {recovered}."
+            "Se calculan, pero no forman parte del resumen: o repiten lo que ya dice la "
+            "volatilidad, o su incertidumbre es tan grande que se leen mal."
         )
-    explain([risk.volatility, risk.max_drawdown])
-
-    left, right = st.columns(2)
-    metric_card(
-        left,
-        risk.var_95_1d,
-        f"{format_eur(risk.var_95_1d_eur, 0)} ({format_percent(risk.var_95_1d.value, 2)})",
-    )
-    metric_card(
-        right, risk.expected_shortfall_95_1d, format_percent(risk.expected_shortfall_95_1d.value, 2)
-    )
-    explain([risk.var_95_1d, risk.expected_shortfall_95_1d])
-
-    st.subheader("Frente al mercado mundial")
-    if risk.beta.value is None:
-        st.info("No disponible con los datos actuales.")
-    else:
-        left, right = st.columns(2)
-        metric_card(left, risk.beta, format_number(risk.beta.value, 2))
+        if risk.drawdown and risk.max_drawdown.value is not None:
+            dd = risk.drawdown
+            recovered = (
+                f"recuperada el {format_date(dd.recovered)}"
+                if dd.recovered
+                else "aún no recuperada en la fecha de los datos"
+            )
+            technical_line(
+                risk.max_drawdown,
+                format_percent(risk.max_drawdown.value, 1),
+                f"Desde el {format_date(risk.max_drawdown.window_start)}: del "
+                f"{format_date(dd.peak)} al {format_date(dd.trough)}; {recovered}.",
+            )
+        if risk.var_95_1d.value is not None:
+            technical_line(
+                risk.var_95_1d,
+                f"{format_eur(risk.var_95_1d_eur, 0)} ({format_percent(risk.var_95_1d.value, 2)})",
+            )
+            technical_line(
+                risk.expected_shortfall_95_1d,
+                format_percent(risk.expected_shortfall_95_1d.value, 2),
+            )
         if risk.alpha.value is not None and risk.alpha.interval is not None:
             interval = risk.alpha.interval
-            metric_card(right, risk.alpha, format_percent(risk.alpha.value, 2))
-            right.caption(
+            technical_line(
+                risk.alpha,
+                format_percent(risk.alpha.value, 2),
                 f"Rango probable (95 %): de {format_percent(interval.low, 2)} a "
-                f"{format_percent(interval.high, 2)} al año."
+                f"{format_percent(interval.high, 2)} al año.",
             )
-        else:
-            right.caption(
-                texts.WARNING_TEXTS[risk.alpha.warnings[0]] if risk.alpha.warnings else ""
-            )
-        extra = f"Índice de referencia: {risk.benchmark_name}." if risk.benchmark_name else None
-        if risk.r_squared is not None:
-            extra = (extra or "") + f" R²: {format_number(risk.r_squared, 2)}."
-        explain([risk.beta, risk.alpha], extra)
-
-    st.subheader("Contexto: rentabilidad pasada")
-    annualised = report.returns.annualised_return
-    if annualised.value is None:
-        st.info("No disponible con los datos actuales.")
-    else:
-        metric_card(st, annualised, format_percent(annualised.value, 1))
-        if report.returns.limited_by:
-            st.caption(
-                f"El periodo empieza cuando empezó a cotizar "
-                f"{short_fund_name(report.returns.limited_by)}."
-            )
-        explain([annualised])
+        elif risk.alpha.warnings:
+            st.markdown(f"**Alpha.** {texts.WARNING_TEXTS[risk.alpha.warnings[0]]}")
 
 
 def show_details(report: service.AnalysisReport) -> None:

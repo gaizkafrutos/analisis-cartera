@@ -187,3 +187,22 @@ def test_window_is_limited_by_the_youngest_fund():
     )
     assert result.annualised_return.window_start == date(2021, 1, 1)
     assert result.limited_by == FUNDS[USD_FUND].name
+
+
+def test_trailing_window_uses_the_last_five_years():
+    index = pd.date_range("2015-01-01", "2025-12-31", freq="D")
+    returns = pd.Series(0.0, index=index)
+    returns[returns.index > pd.Timestamp("2020-12-31")] = 0.0001
+    recent, base = rt.trailing_window(returns, pd.Timestamp("2014-12-31"), 5)
+    assert base == pd.Timestamp("2020-12-31")
+    assert recent.index[0] == pd.Timestamp("2021-01-01")
+    years = (recent.index[-1] - base).days / rt.DAYS_PER_YEAR
+    assert rt.annualised_return(recent, base) == pytest.approx(1.0001 ** (len(recent) / years) - 1)
+
+
+def test_trailing_window_with_short_history_is_the_whole_series():
+    returns = pd.Series(0.001, index=pd.date_range("2023-01-02", periods=500, freq="B"))
+    start = pd.Timestamp("2023-01-01")
+    recent, base = rt.trailing_window(returns, start, 5)
+    assert base == start
+    assert len(recent) == len(returns)

@@ -5,6 +5,11 @@ conceptos; este documento fija las decisiones concretas de implementación.
 
 > Herramienta informativa. Nada de lo aquí descrito es asesoramiento de inversión.
 
+> Las cifras de ejemplo de este documento salen de datos publicados por iShares (BlackRock),
+> con posiciones a 4-nov-2026, o de cálculos propios hechos con ellos. Se reproducen como
+> ejemplos puntuales para explicar la herramienta; los datos pertenecen a su titular y pueden
+> haber cambiado.
+
 ## Supuestos generales
 - Divisa base: euro. Las series en otra divisa se convierten con los tipos de referencia del BCE.
 - La cartera se describe por su **valor de mercado actual**, no por el precio de compra.

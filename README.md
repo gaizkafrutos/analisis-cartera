@@ -20,12 +20,17 @@ Mucha gente compra dos o tres ETFs "para diversificar" sin saber que:
 - un **MSCI World y un S&P 500 comparten el 71 %** de su contenido;
 - comprar en euros no elimina el riesgo de divisa: con un World, **unos tres cuartos de la cartera
   dependen del dólar**;
-- con 1.300 empresas en cartera, la concentración puede equivaler a tener **solo 68 a partes
-  iguales**;
+- una cartera de 60 % MSCI World, 30 % S&P 500 y 10 % World cubierto tiene 1.300 empresas,
+  pero su concentración equivale a tener **solo 68 a partes iguales**;
 - la comisión anunciada (TER) no es lo que cuesta el fondo: a 5 años, el iShares Core S&P 500
   rindió **+0,17 % al año por encima** de su índice pese a cobrar un 0,07 %.
 
 Esta herramienta lo calcula con los datos que publican las propias gestoras y lo explica.
+
+> Las cifras de ejemplo de este README y de `docs/` salen de datos publicados por iShares (BlackRock),
+> con posiciones a 4-nov-2026, o de cálculos propios hechos con ellos. Se reproducen como
+> ejemplos puntuales para explicar la herramienta; los datos pertenecen a su titular y pueden
+> haber cambiado.
 
 ## Qué muestra
 
@@ -168,7 +173,25 @@ README muestran cifras derivadas de esos datos. Detalle y fuentes consultadas en
 MVP completo en local. Próximas fases, sin implementar:
 
 1. Escenarios condicionales, siempre con rangos y nunca con una cifra única.
-2. Comportamiento en crisis pasadas (2000-02, 2008, 2020, 2022) con índices o factores.
+2. Crisis anteriores a los ETFs (2000-02, 2008) con índices o factores. Las de 2020 y 2022
+   ya se muestran, con los propios ETFs.
 3. Informe en PDF a partir del mismo informe JSON.
 
-Licencia del código: pendiente de decidir antes de hacer público el repositorio.
+## Licencia
+
+El código y la documentación de este repositorio se publican bajo licencia MIT (ver
+[LICENSE](LICENSE)).
+
+La licencia **no cubre datos de terceros**:
+
+- Las posiciones, comisiones, valores liquidativos y demás datos de iShares (BlackRock)
+  pertenecen a su titular y se rigen por sus condiciones de uso. Los metadatos de
+  `data/reference/` (TER, índice, fechas y bolsas de 15 ETFs) se transcribieron de sus
+  documentos públicos, con fuente y fecha, y tampoco quedan bajo la licencia MIT.
+- Los tipos de cambio y el €STR proceden del BCE.
+- La tipografía Barlow tiene su propia licencia (SIL Open Font License 1.1,
+  [app/static/fonts/OFL.txt](app/static/fonts/OFL.txt)).
+
+El repositorio no incluye posiciones ni precios: los scripts los descargan para el uso
+personal de quien los ejecuta. Las cifras de ejemplo del README, de `docs/` y de las
+capturas proceden de esos datos y se citan como ejemplos puntuales.

@@ -94,8 +94,10 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
   explicación.
 - Los textos para el usuario (explicación de una línea, metodología, limitaciones) viven en un
   único sitio en `reporting/` y se reutilizan en UI y documentación.
-- El acceso a datos va detrás de interfaces (`PriceSource`, `HoldingsSource`) para poder cambiar
-  de fuente según lo que permitan las licencias.
+- El acceso a datos va a través de snapshots normalizados (`data/snapshots.py`): cada fuente es
+  un script de `scripts/` que escribe ese formato, y el motor solo lee snapshots. Así se cambia
+  de fuente según lo que permitan las licencias. Las interfaces `PriceSource` y
+  `HoldingsSource` no existen todavía: crearlas cuando haya una segunda fuente real.
 
 ## Renta fija (alcance reducido en el MVP)
 - Todo ETF se clasifica por tipo de activo: renta variable, renta fija, otros.
@@ -195,7 +197,8 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
   docstring y en `docs/METODOLOGIA.md`.
 
 ## Puntos de extensión (fases 2-4)
-- `PriceSource` permite añadir índices largos o factores (Kenneth French) en la fase 3.
+- Un snapshot de precios con otro origen permite añadir índices largos o factores (Kenneth
+  French) en la fase 3.
 - `MetricResult` ya admite intervalos: los escenarios (fase 2) usan la misma estructura.
 - `AnalysisReport` serializable → PDF (fase 4) y API (FastAPI).
 
@@ -225,7 +228,8 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 | Datos reales en git | No: snapshots en `.gitignore`; solo fixtures pequeñas/sintéticas | tomada |
 | Precios/rentabilidades | NAV de iShares + tipos de cambio del BCE; yfinance descartado | tomada |
 | Datos en el despliegue | Pedir autorización a BlackRock; mientras tanto, solo ejecución local | pendiente del autor |
-| Licencia del código | La elige el autor antes de hacer público el repo; no añadir ninguna mientras tanto | pendiente del autor |
+| Licencia del código | MIT (`LICENSE`); no cubre datos de terceros (sección "Licencia" del README) | tomada (6-nov-2026) |
+| Cifras de iShares en README y docs | Se mantienen como ejemplos puntuales, con aviso de procedencia y fecha en cada documento; nada de tablas completas de posiciones | tomada (6-nov-2026) |
 | Repositorio | GitHub privado hasta decidir licencia y datos | tomada |
 | Entrada: ISIN fuera del universo | ISIN válido pero desconocido no es error: "no cubierto" con su % de cartera | tomada |
 | Entrada: ISIN inválido | Formato o dígito de control incorrecto = error que el usuario debe corregir | tomada |

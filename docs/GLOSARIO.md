@@ -6,6 +6,11 @@ los resultados reales.
 
 > Este glosario es informativo. No es asesoramiento de inversión.
 
+> Las cifras de ejemplo de este documento salen de datos publicados por iShares (BlackRock),
+> con posiciones a 4-nov-2026, o de cálculos propios hechos con ellos. Se reproducen como
+> ejemplos puntuales para explicar la herramienta; los datos pertenecen a su titular y pueden
+> haber cambiado.
+
 ## Cómo está organizada cada entrada
 
 ```

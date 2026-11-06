@@ -1,6 +1,10 @@
 """Risk of the portfolio's EUR return series (current weights held constant, see `returns`).
 
-Metrics and windows (decided with the author, see docs/METODOLOGIA.md):
+Metrics and windows (decided with the author, see docs/METODOLOGIA.md and AUDITORIA.md):
+    - Drawdowns in fixed episodes (calendar years 2020 and 2022) for the portfolio and for the
+      reference index, so different portfolios are compared on the same events. Added after the
+      audit: the whole-window maximum drawdown ranked a concentrated tech portfolio as less risky
+      than the MSCI World because its worst episode was 2020, not 2022.
     - Volatility: standard deviation of weekly returns x sqrt(52), last 5 years.
     - Maximum drawdown: worst fall from a previous peak, daily, whole available window; with the
       peak, trough and recovery dates.
@@ -38,6 +42,7 @@ VAR_95_1D = "var_95_1d"
 EXPECTED_SHORTFALL_95_1D = "expected_shortfall_95_1d"
 BETA = "beta"
 ALPHA = "alpha"
+EPISODE_DRAWDOWNS = "episode_drawdowns"
 
 BENCHMARK_ISIN = "IE00B6R52259"  # iShares MSCI ACWI UCITS ETF (decision in CLAUDE.md)
 WINDOW_YEARS = 5
@@ -58,6 +63,42 @@ WARNING_ALPHA_IS_NOT_SKILL = "alpha_is_not_skill"
 WARNING_ALPHA_INTERVAL_INCLUDES_ZERO = "alpha_interval_includes_zero"
 WARNING_VOLATILITY_SYMMETRIC = "volatility_symmetric"
 LOW_R_SQUARED = 0.8
+
+
+class EpisodeDefinition(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    label: str
+    start: date
+    end: date
+
+
+EPISODE_DEFINITIONS = (
+    EpisodeDefinition(
+        key="2020", label="2020 (covid)", start=date(2020, 1, 1), end=date(2020, 12, 31)
+    ),
+    EpisodeDefinition(
+        key="2022",
+        label="2022 (inflación y subida de tipos)",
+        start=date(2022, 1, 1),
+        end=date(2022, 12, 31),
+    ),
+)
+
+
+class EpisodeDrawdown(BaseModel):
+    """Worst fall from a previous peak inside the episode (value at the episode start = peak)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    label: str
+    start: date
+    end: date
+    portfolio: float | None
+    """None if the portfolio has no data for the whole episode (never estimated)."""
+    reference: float | None
 
 
 class Drawdown(BaseModel):
@@ -83,6 +124,7 @@ class RiskResult(BaseModel):
     alpha: MetricResult
     r_squared: float | None
     benchmark_name: str | None
+    episodes: tuple[EpisodeDrawdown, ...] = ()
 
 
 # --- pure building blocks ---------------------------------------------------------------------
@@ -117,6 +159,40 @@ def max_drawdown(daily: pd.Series, start: pd.Timestamp) -> tuple[float, Drawdown
     recovered = back.index[0].date() if len(back) else None
     return float(drawdowns.min()), Drawdown(
         peak=peak.date(), trough=trough.date(), recovered=recovered
+    )
+
+
+def drawdown_in_period(values: pd.Series, start: date, end: date) -> float | None:
+    """Worst drawdown of a value series inside [start, end].
+
+    The last value on or before `start` is the starting peak. None if the series does not
+    cover the whole period (starts after `start` or ends before `end`).
+    """
+    first, last = pd.Timestamp(start), pd.Timestamp(end)
+    if values.empty or values.index[0] > first or values.index[-1] < last:
+        return None
+    base = values.loc[:first]
+    window = values.loc[first:last]
+    path = pd.concat([base.iloc[-1:], window]) if len(base) else window
+    return float((path / path.cummax() - 1).min())
+
+
+def episode_drawdowns(
+    portfolio_values: pd.Series | None, reference_values: pd.Series | None
+) -> tuple[EpisodeDrawdown, ...]:
+    def dd(values: pd.Series | None, episode: EpisodeDefinition) -> float | None:
+        return None if values is None else drawdown_in_period(values, episode.start, episode.end)
+
+    return tuple(
+        EpisodeDrawdown(
+            key=e.key,
+            label=e.label,
+            start=e.start,
+            end=e.end,
+            portfolio=dd(portfolio_values, e),
+            reference=dd(reference_values, e),
+        )
+        for e in EPISODE_DEFINITIONS
     )
 
 
@@ -282,6 +358,11 @@ def compute_risk(
     beta, alpha, r_squared = _beta_alpha(
         daily, start, benchmark_index, estr, coverage, status, short, equity_share
     )
+    episodes = (
+        episode_drawdowns(growth_index(daily, start), benchmark_index)
+        if status is not MetricStatus.NOT_AVAILABLE
+        else ()
+    )
     return RiskResult(
         volatility=volatility,
         max_drawdown=mdd,
@@ -293,6 +374,7 @@ def compute_risk(
         alpha=alpha,
         r_squared=r_squared,
         benchmark_name=benchmark_name if beta.value is not None else None,
+        episodes=episodes,
     )
 
 

@@ -39,6 +39,7 @@ los resultados reales.
 - [Rentabilidad simulada con pesos constantes](#rentabilidad-simulada-con-pesos-constantes)
 - [Volatilidad](#volatilidad)
 - [Máxima caída](#máxima-caída)
+- [Caída en episodios fijos](#caída-en-episodios-fijos)
 - [VaR histórico y pérdida esperada en la cola](#var-histórico-y-pérdida-esperada-en-la-cola)
 - [Beta](#beta)
 - [Alpha e intervalo de confianza](#alpha-e-intervalo-de-confianza)
@@ -386,8 +387,8 @@ deja el 75 % del dinero: −13,4 % anual.
 ## Rentabilidad simulada con pesos constantes
 **En una frase:** lo que habría rendido tu reparto actual si lo hubieras mantenido igual cada día.
 
-**Cómo se calcula:** cada día, Σ (peso actual × rentabilidad del ETF). El periodo empieza cuando
-empezó a cotizar el ETF más reciente de la cartera.
+**Cómo se calcula:** cada día, Σ (peso actual × rentabilidad del ETF), anualizado sobre los
+últimos 5 años (o desde que empezó a cotizar el ETF más reciente, si es más tarde).
 
 **Ejemplos reales (en euros, hasta 4-nov-2026):** 100 % MSCI World desde 2009, 12,73 % anual;
 60 % World + 30 % S&P 500 + 10 % World cubierto desde 2010, 13,32 %; 60 % World + 20 % deuda
@@ -395,7 +396,9 @@ pública + 20 % Global Aggregate desde 2017, 7,56 %.
 
 **Trampas habituales:**
 - No es tu rentabilidad: tú compraste en otras fechas y con otros pesos.
-- Depende mucho del periodo: desde 2009 incluye uno de los mejores ciclos de la bolsa.
+- Depende mucho del periodo: desde 2009 incluye uno de los mejores ciclos de la bolsa. Por eso
+  ahora se usa siempre la misma ventana de 5 años: dos carteras con ETFs de distinta edad se
+  comparan en las mismas fechas (los ejemplos de arriba, calculados antes del cambio, no).
 - Rentabilidades pasadas no garantizan rentabilidades futuras.
 
 **En el código:** `radiografia.analytics.returns.compute_returns`.
@@ -435,7 +438,41 @@ recuperado el 7-ene-2021. Peor día: 16-mar-2020, −9,9 %.
 **Qué decisión ayuda a tomar:** ¿aguantarías ver tu cartera un 34 % abajo sin vender?
 
 **Trampas habituales:** solo ve el periodo con datos (desde 2009 no incluye 2008, cuando la bolsa
-mundial cayó cerca del 50 %); es un único episodio, no una frecuencia.
+mundial cayó cerca del 50 %); es un único episodio, no una frecuencia. Y no sirve para comparar
+carteras: cada una tiene su peor momento en un año distinto (ver la entrada siguiente).
+
+---
+
+## Caída en episodios fijos
+**En una frase:** cuánto llegó a caer tu cartera dentro de un año malo concreto, comparado con el
+mercado mundial en las mismas fechas.
+
+**Cómo se calcula:** se parte del valor al empezar el año y, para cada día del año, valor ÷ máximo
+anterior − 1; se toma el peor. Se hace con tu cartera y con el iShares MSCI ACWI. Usamos 2020
+(covid: caída rápida y fuerte de las bolsas) y 2022 (inflación y subida de tipos: bajaron a la vez
+acciones y bonos).
+
+**Ejemplos reales (en euros, datos a 4-nov-2026):**
+
+| Cartera | 2020 | 2022 |
+|---|---|---|
+| MSCI ACWI (referencia) | −33,6 % | −16,3 % |
+| 100 % MSCI World | −33,9 % | −16,9 % |
+| Global con 30 % de bonos | −25,0 % | −14,7 % |
+| 60 % Nasdaq 100 + 40 % S&P 500 Tecnología | −30,7 % | −28,5 % |
+
+La cartera tecnológica cae menos que el mercado en 2020 y casi el doble en 2022. Con una sola
+"máxima caída" de todo el periodo (−30,7 %, en 2020) parecía más tranquila que el MSCI World
+(−33,9 %): era una ilusión del episodio elegido.
+
+**Qué decisión ayuda a tomar:** ver si tu cartera sufre más o menos que el mercado según el tipo
+de crisis, y si podrías aguantar esa caída.
+
+**Trampas habituales:** son solo dos episodios y no incluyen 2008 ni crisis largas (2000-2002); la
+próxima crisis no tiene por qué parecerse a ninguna. Con bonos, 2022 es especialmente duro porque
+los bonos no amortiguaron la caída de las acciones.
+
+**En el código:** `radiografia.analytics.risk.episode_drawdowns`.
 
 ---
 

@@ -37,8 +37,10 @@ Esta herramienta lo calcula con los datos que publican las propias gestoras y lo
    - **Exposición:** por país, sector y divisa, abriendo cada ETF (*look-through*).
    - **Concentración:** las 10 mayores empresas, número efectivo de empresas y solapamiento
      entre cada par de ETFs.
-   - **Riesgo:** volatilidad, máxima caída (con fechas), VaR histórico en euros, beta y alpha
-     **con su rango de incertidumbre**, y la rentabilidad pasada como contexto.
+   - **Riesgo:** cuánto habría caído tu cartera en **2020 y 2022 comparado con el mercado
+     mundial** en las mismas fechas, volatilidad, sensibilidad al mercado (beta) y la rentabilidad
+     de los últimos 5 años como contexto. VaR, alpha con su rango y máxima caída quedan como
+     medidas técnicas.
 
 Cada cifra lleva una explicación de una línea y un desplegable con cómo se calcula, sus
 limitaciones, el periodo y la fecha del dato. Funciona en el móvil.
@@ -111,7 +113,7 @@ ellos la app funciona igual, pero solo con los costes: el resto aparece como "no
 .venv\Scripts\python -m pytest -m validation
 ```
 
-El primero son los tests que corren en la CI (219, sin red ni datos externos). El segundo, la
+El primero son los tests que corren en la CI (229, sin red ni datos externos). El segundo, la
 validación con datos reales (67 más, con la copia local).
 
 ## Datos y licencias

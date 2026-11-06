@@ -28,8 +28,8 @@ datos de las gestoras, que no están en el repositorio (ver `docs/FUENTES_Y_LICE
 descargan en local con:
 
 ```bash
-.venv\Scripts\python scriptsuild_holdings.py
-.venv\Scripts\python scriptsuild_prices.py
+.venv\Scripts\python scripts\build_holdings.py
+.venv\Scripts\python scripts\build_prices.py
 ```
 
 Sin ellos, la app funciona igual pero esas secciones aparecen como "no disponible".

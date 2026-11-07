@@ -11,6 +11,7 @@ Run: .venv\\Scripts\\streamlit run app\\streamlit_app.py
 
 from __future__ import annotations
 
+import hashlib
 import html
 import math
 from collections.abc import Callable
@@ -40,6 +41,7 @@ from radiografia.reporting.presentation import (
     country_name,
     currency_name,
     sector_name,
+    versus_rows,
     with_reference,
 )
 from radiografia.reporting.summary import Topic
@@ -169,7 +171,13 @@ def cartouche(report: service.AnalysisReport) -> None:
         coverage += f"; {format_eur(portfolio.not_covered_weight * portfolio.total_eur)} sin datos"
     rows = [("Analizado", survey_bar(covered) + f'<span class="survey-note">{coverage}</span>')]
     if holdings_date:
-        rows.append(("Posiciones a", format_date(holdings_date)))
+        age = (
+            f' <span class="survey-note">({texts.DATA_AGE.format(days=report.freshness.age_days)})'
+            "</span>"
+            if report.freshness is not None
+            else ""
+        )
+        rows.append(("Posiciones a", format_date(holdings_date) + age))
     if prices_end:
         rows.append(("Precios hasta", format_date(prices_end)))
     rows += [
@@ -211,7 +219,9 @@ def choose_data() -> service.Dataset:
         key="data_source",
         help=texts.DATA_CHOICE_HELP,
     )
-    return source()
+    data = source()
+    st.caption(texts.DATASET_TEXTS[data.key].choice_help)
+    return data
 
 
 def read_input() -> PortfolioInputResult | None:
@@ -293,8 +303,13 @@ def holdings_files(portfolio) -> service.UploadedData:
     funds = sorted(universe.funds.values(), key=lambda f: f.name)
     names = {f.isin: f"{short_fund_name(f.name)} · {f.isin}" for f in funds}
     assigned: dict[str, object] = {}
+    # each file is read once per session (not on every rerun); only this session's memory
+    previous = st.session_state.get("holdings_read", {})
+    parsed: dict[tuple[str, int, str], object] = {}
     for i, (filename, content) in enumerate(st.session_state.get("holdings_uploads", [])):
-        upload = service.read_holdings_file(filename, content, universe)
+        key = (filename, len(content), hashlib.sha256(content).hexdigest())
+        upload = previous.get(key) or service.read_holdings_file(filename, content, universe)
+        parsed[key] = upload
         if not upload.ok:
             message = im.format_holdings_file_error(upload.error, upload.detail, upload.issuer)
             st.error(f"**{filename}**: {message}")
@@ -315,6 +330,7 @@ def holdings_files(portfolio) -> service.UploadedData:
             if isin in assigned:
                 st.warning(texts.UPLOAD_DUPLICATE.format(fund=names[isin]))
             assigned[isin] = upload
+    st.session_state["holdings_read"] = parsed
     uploaded = service.snapshot_from_uploads(assigned, universe)
     for isin, problem in uploaded.problems:
         st.warning(f"**{names.get(isin, isin)}**: {im.UPLOAD_PROBLEM_MESSAGES[problem]}")
@@ -496,6 +512,7 @@ def not_available(metric: MetricResult | BreakdownResult) -> bool:
 def show_summary(report: service.AnalysisReport) -> None:
     st.header("2. Lo esencial")
     cartouche(report)
+    stale_warning(report)
     with st.container(key="legend"):
         for point in report.summary.points:
             st.markdown(f":material/{TOPIC_ICONS.get(point.topic, 'info')}: {point.text}")
@@ -557,9 +574,49 @@ def twin_sources(report: service.AnalysisReport) -> None:
             st.markdown(f"- {line}")
 
 
+def stale_warning(report: service.AnalysisReport) -> None:
+    freshness = report.freshness
+    if freshness is not None and freshness.stale:
+        st.warning(
+            texts.STALE_DATA.format(
+                date=format_date(freshness.holdings_as_of),
+                days=freshness.age_days,
+                hint=texts.DATASET_TEXTS[report.dataset].stale_hint,
+            ),
+            icon=":material/history:",
+        )
+
+
+def versus(report: service.AnalysisReport) -> None:
+    """Key figures of the portfolio next to the world equity market's, already computed."""
+    rows = versus_rows(report.lookthrough, report.reference)
+    if not rows:
+        return
+
+    def show(key: str, value: float | None) -> str:
+        if value is None:
+            return "—"
+        return format_number(value, 0) if key == "effective" else format_percent(value, 0)
+
+    body = "".join(
+        f"<tr><th scope='row'>{html.escape(texts.VERSUS_ROWS[key])}</th>"
+        f"<td class='mine'>{show(key, mine)}</td><td class='world'>{show(key, world)}</td></tr>"
+        for key, mine, world in rows
+    )
+    st.html(
+        f"""<table class="versus" aria-label="{html.escape(texts.VERSUS_TITLE)}">
+        <caption>{html.escape(texts.VERSUS_TITLE)}</caption>
+        <thead><tr><th></th><th scope="col" class="mine">{PORTFOLIO_LABEL}</th>
+        <th scope="col" class="world">{REFERENCE_LABEL}</th></tr></thead>
+        <tbody>{body}</tbody></table>"""
+    )
+    st.caption(texts.VERSUS_NOTE)
+
+
 def show_exposure(report: service.AnalysisReport) -> None:
     lt, ref = report.lookthrough, report.reference
     twin_sources(report)
+    versus(report)
     for breakdown, reference, name in (
         (lt.geography, ref.geography if ref else None, country_name),
         (lt.sector, ref.sector if ref else None, sector_name),

@@ -56,9 +56,12 @@ contra la lista ISO 3166.
 ## Universo de fondos
 Código: `scripts/build_universe.py`, `radiografia.data.sources.ishares`, `radiografia.data.universe`.
 
-**Qué contiene:** 15 ETFs UCITS de iShares (12 de renta variable, 3 de renta fija), elegidos para
-cubrir las carteras de ejemplo: núcleo global, regiones, un sector, factores, una clase cubierta
-a euros y renta fija. Lista y motivo de cada uno en `data/reference/universe_seed.csv`.
+**Qué contiene:** 18 ETFs UCITS. 15 de iShares (12 de renta variable, 3 de renta fija), elegidos
+para cubrir las carteras de ejemplo: núcleo global, regiones, un sector, factores, una clase
+cubierta a euros y renta fija; lista y motivo de cada uno en `data/reference/universe_seed.csv`.
+Y uno de Xtrackers (MSCI World), Amundi (Core MSCI World) y SPDR (MSCI ACWI), transcritos a mano
+de su ficha en `universe_manual.csv` y `listings_manual.csv`: se analizan subiendo su fichero de
+posiciones y no tienen precios, así que quedan fuera de rentabilidad y riesgo.
 
 **Cómo se construye:** para cada ETF se descargan la ficha web y el Excel oficial del gestor
 (sitio británico, en inglés). Del Excel (hoja `Key Facts`) salen ISIN, TER, clase de activo,
@@ -198,7 +201,7 @@ Código: `scripts/build_prices.py`, `radiografia.data.sources.ishares_prices`,
   anualiza con menos de un año de historia común; con menos de tres se avisa. La serie completa
   se sigue usando para las caídas en episodios.
 - **No cubiertos:** ETFs fuera del universo, sin NAV, o de distribución sin datos de repartos.
-- **Validación:** rentabilidades anuales de los 15 ETFs frente a las publicadas por iShares, en la
+- **Validación:** rentabilidades anuales de los 15 ETFs de iShares frente a las publicadas por iShares, en la
   divisa del NAV. Ver `docs/VALIDACION.md`.
 
 ### Tracking difference
@@ -242,7 +245,7 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
   de "otras medidas técnicas" y fuera del resumen: el VaR coincide en las cuatro carteras de
   prueba con 1,645 × la desviación típica diaria (no añade nada a la volatilidad) y el intervalo
   del alpha casi siempre incluye el cero.
-- **Validación:** volatilidad a 3 años (36 meses, en la divisa del NAV) de los 15 ETFs frente a la
+- **Validación:** volatilidad a 3 años (36 meses, en la divisa del NAV) de los 15 ETFs de iShares frente a la
   que publica iShares; ver `docs/VALIDACION.md`. La beta publicada por iShares es frente a su
   propio índice, del que no tenemos la serie: no se puede contrastar.
 
@@ -370,6 +373,25 @@ a `demo`).
 - **Para qué sirve:** probar en la CI todas las secciones de principio a fin y enseñar la
   herramienta en público. No sirve para sacar conclusiones sobre ningún producto.
 
+## Antigüedad de los datos
+Código: `radiografia.analytics.freshness`, `service.analyze` (`AnalysisReport.freshness`).
+
+- **Fecha:** la más antigua de las posiciones de los ETFs analizados (`data_as_of` del
+  look-through). La cartela muestra la fecha y cuántos días tiene.
+- **Aviso:** a partir de 31 días, un aviso bajo la cartela con lo que hay que hacer para
+  actualizar (volver a ejecutar los scripts en local, descargar de nuevo los ficheros, o el
+  retraso propio de la SEC). La demo nunca se marca: sus fechas son parte de los datos inventados.
+
+## Tu cartera frente al mercado mundial
+Código: `reporting.presentation.versus_rows` y `app/streamlit_app.py` (`versus`).
+
+Al principio de la pestaña Exposición, cuatro cifras de la cartera junto a las del mercado
+mundial de acciones (el ETF del MSCI ACWI, abierto con el mismo look-through): peso de EE. UU. en
+la renta variable, parte de la cartera que depende del dólar, peso de las 10 mayores empresas y
+número efectivo de empresas. Son las mismas cifras que ya calcula el motor (sin cálculo nuevo).
+La línea del dólar incluye los bonos de la cartera; el mercado mundial es solo acciones. Solo
+aparece cuando hay datos de ese ETF (no en el modo de ficheros, salvo que se suba el suyo).
+
 ## Resumen en lenguaje claro
 Código: `radiografia.reporting.summary.build_summary`.
 
@@ -387,6 +409,9 @@ Código: `radiografia.reporting.summary.build_summary`.
   look-through), como punto neutro. Nunca con otros productos.
 - **Lenguaje:** describe, no recomienda. Un test busca palabras prohibidas ("deberías",
   "recomend…", "compra", "vende", "cámbiate"...) en todos los textos, también en carteras reales.
+- **Reparto acciones/bonos:** con el tipo de activo de cada ETF del universo, sobre la parte de
+  la cartera que la app reconoce. No depende de qué ETFs tienen fichero de posiciones (antes, sin
+  el fichero de un ETF de acciones, una cartera 70/30 salía 75/25).
 - **Casos cuidados tras revisar cuatro carteras reales:** no mostrar "−0 %" en una divisa
   despreciable; expresar el reparto acciones/bonos sobre la parte analizada; avisar en la frase de
   beta cuando hay mucha renta fija (y no dar alpha); decir desde cuándo hay datos al hablar de la

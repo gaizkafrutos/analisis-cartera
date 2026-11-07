@@ -6,9 +6,13 @@ Presentation only: no financial calculation happens here.
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from radiografia.analytics.fund_breakdown import CASH_LABEL
-from radiografia.domain.metrics import BreakdownItem
+from radiografia.domain.metrics import BreakdownItem, BreakdownResult
+
+if TYPE_CHECKING:
+    from radiografia.analytics.lookthrough import LookThroughResult
 
 CASH_NAME = "Liquidez y derivados"
 REST_NAME = "Resto"
@@ -121,3 +125,27 @@ def top_with_rest(items: Iterable[BreakdownItem], n: int) -> list[tuple[str, flo
     if rest > 0:
         head.append((REST_NAME, rest))
     return head
+
+
+def _weight_of(breakdown: BreakdownResult, label: str) -> float | None:
+    if not breakdown.items:
+        return None
+    return next((item.weight for item in breakdown.items if item.label == label), 0.0)
+
+
+def versus_rows(
+    portfolio: LookThroughResult, reference: LookThroughResult | None
+) -> list[tuple[str, float | None, float | None]]:
+    """(row key, portfolio value, reference value) for the side-by-side block, read from the
+    already computed look-throughs (no new calculation). Rows without a portfolio value are
+    left out; no rows without a reference."""
+    if reference is None:
+        return []
+    rows = [
+        ("us", _weight_of(portfolio.geography, "United States"),
+         _weight_of(reference.geography, "United States")),
+        ("usd", _weight_of(portfolio.currency, "USD"), _weight_of(reference.currency, "USD")),
+        ("top10", portfolio.top10_weight.value, reference.top10_weight.value),
+        ("effective", portfolio.effective_companies.value, reference.effective_companies.value),
+    ]  # fmt: skip
+    return [row for row in rows if row[1] is not None]

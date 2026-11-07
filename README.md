@@ -104,8 +104,8 @@ su propio redondeo (no ajustadas para que pasen). Detalle en [docs/VALIDACION.md
 | Qué | Resultado |
 |---|---|
 | Desglose por sector y país de cada ETF | 19 comparaciones coinciden (diferencia máx. 0,006 puntos); 4 discrepancias explicadas |
-| Rentabilidad anual de los 15 ETFs, 5 años cada uno | 15 de 15 coinciden |
-| Volatilidad a 3 años de los 15 ETFs | 15 de 15 coinciden (MSCI World: 11,62 % publicado y calculado) |
+| Rentabilidad anual de los 15 ETFs de iShares, 5 años cada uno | 15 de 15 coinciden |
+| Volatilidad a 3 años de los 15 ETFs de iShares | 15 de 15 coinciden (MSCI World: 11,62 % publicado y calculado) |
 
 Las discrepancias están documentadas y fijadas en los tests como fallos esperados: si un día
 cuadran, el test avisa para revisar la explicación.
@@ -140,7 +140,7 @@ Para ver la app completa sin descargar nada, con los datos inventados de la demo
 .venv\Scripts\python -m pytest -m validation
 ```
 
-El primero son los tests que corren en la CI (320, sin red ni datos externos; con la demo y
+El primero son los tests que corren en la CI (323, sin red ni datos externos; con la demo y
 los datos públicos recorren todas las secciones de principio a fin). El segundo, la validación
 con datos reales (71 más, con la copia local y los ficheros de ejemplo de cada gestora).
 
@@ -221,8 +221,9 @@ La licencia **no cubre datos de terceros**:
 
 - Las posiciones, comisiones, valores liquidativos y demás datos de iShares (BlackRock)
   pertenecen a su titular y se rigen por sus condiciones de uso. Los metadatos de
-  `data/reference/` (TER, índice, fechas y bolsas de 15 ETFs) se transcribieron de sus
-  documentos públicos, con fuente y fecha, y tampoco quedan bajo la licencia MIT.
+  `data/reference/` (TER, índice, fechas y bolsas de los 18 ETFs del universo) se
+  transcribieron de los documentos públicos de cada gestora, con fuente y fecha, y tampoco
+  quedan bajo la licencia MIT.
 - Los tipos de cambio y el €STR proceden del BCE.
 - La tipografía Barlow tiene su propia licencia (SIL Open Font License 1.1,
   [app/static/fonts/OFL.txt](app/static/fonts/OFL.txt)).

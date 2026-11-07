@@ -22,6 +22,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from radiografia.reload import refresh_if_changed
+
+refresh_if_changed()  # after a deployment, load the new package code (radiografia/reload.py)
+
 from radiografia import service
 from radiografia.analytics.costs import CostLine
 from radiografia.analytics.risk import EPISODE_DRAWDOWNS, EpisodeDrawdown, ProfilePoint

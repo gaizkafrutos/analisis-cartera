@@ -13,7 +13,7 @@ resultados de la validación, en `docs/VALIDACION.md`.
 > desde la fecha común de cada una); y la CI tiene **233 tests** (aquí, 219). La tabla con las
 > dos referencias está en `docs/GLOSARIO.md`, "Caída en episodios fijos".
 >
-> **Nota posterior (7-nov-2026).** Al cerrar la v1: la CI tiene **324 tests** y la validación
+> **Nota posterior (7-nov-2026).** Al cerrar la v1: la CI tiene **325 tests** y la validación
 > **71** (aquí, 219 y 67); el universo tiene **18 ETFs** (los 15 de iShares más uno de Xtrackers,
 > Amundi y SPDR, que se analizan subiendo su fichero de posiciones); la app avisa cuando las
 > posiciones tienen más de un mes y compara lado a lado la cartera con el mercado mundial (puntos
@@ -267,7 +267,7 @@ gestoras, SEC), no sobre métricas.
 - **Útil hoy** para un inversor con ETFs de iShares, Xtrackers, Amundi o SPDR que quiere saber
   qué tiene (países, divisas, empresas, solapamiento y costes), en la web pública subiendo sus
   ficheros o en local con todo; para aprender, con el glosario y los desplegables; y como muestra
-  de trabajo: 324 tests sin red y 71 de validación contra las gestoras.
+  de trabajo: 325 tests sin red y 71 de validación contra las gestoras.
 - **No útil todavía** para la cartera típica con Vanguard o fondos indexados; para el riesgo en
   la web pública; ni para nada que dependa de la fiscalidad.
 - **La conclusión de la sección 6 se confirma:** el límite principal no es técnico, es el dato.

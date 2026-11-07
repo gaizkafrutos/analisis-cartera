@@ -28,8 +28,14 @@ y se redepliega sola cada vez que cambia `main`. Tras fusionar una PR:
 2. Comprueba: el sello «Demo · datos ficticios»; que «¿Con qué datos?» ofrece solo «Demo con
    datos ficticios» y «Tus ficheros de la gestora» (nunca «Tus datos locales»); que se abre
    «Acerca de los datos» al final de la página; y una cartera de ejemplo hasta la pestaña Riesgo.
-3. Si algo falla: en [share.streamlit.io](https://share.streamlit.io), menú de la app ⋮ →
-   «Manage app» muestra el registro; «Reboot app» la reinicia.
+3. Si algo falla: en [share.streamlit.io](https://share.streamlit.io), menú ⋮ de la app →
+   «Reboot» la reinicia; «Manage app» (abajo a la derecha en la propia web) muestra el registro.
+
+**Reiniciar tras ciertos cambios.** Streamlit Cloud aplica cada commit sin reiniciar la app.
+Desde el 7-nov-2026 la app vuelve a cargar el paquete `radiografia` si sus ficheros cambian
+(`src/radiografia/reload.py`); antes de eso, un cambio del paquete dejó la web con un
+`ImportError` hasta reiniciarla. Los cambios de `.streamlit/config.toml` (por ejemplo, el límite
+de subida) y de `requirements.txt` siguen necesitando «Reboot».
 
 **Si hubiera que crearla de nuevo:**
 

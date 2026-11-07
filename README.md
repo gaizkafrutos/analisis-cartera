@@ -11,7 +11,11 @@ cuánto pagas y cuánto se ha movido.
 
 ![Recorrido por la app](docs/img/recorrido.gif)
 
-*Cartera de ejemplo "Muy concentrada" (Nasdaq 100 y S&P 500 Tecnología), datos a 4-nov-2026.*
+*Demo con datos inventados, cartera de ejemplo "Muy concentrada". Ni las capturas ni el GIF
+muestran datos reales.*
+
+**Pruébala:** hay una demo pública con fondos, empresas y precios ficticios (ver
+[Datos y licencias](#datos-y-licencias)). Con ETFs reales, la app se ejecuta en local.
 
 ## El problema
 
@@ -70,6 +74,7 @@ src/radiografia/                         ▼
   service.py   analyze(cartera) -> AnalysisReport   ← único punto de entrada
                                          │
 app/streamlit_app.py ── solo presentación ┘
+app/demo.py         ── la misma app con data/demo/ (datos sintéticos, en git)
 ```
 
 - **Motor en Python separado de la interfaz.** La app no calcula nada; todo sale de
@@ -121,13 +126,20 @@ py -3.12 -m venv .venv
 Los dos scripts descargan los datos de iShares y del BCE a `data/` (fuera del repositorio). Sin
 ellos la app funciona igual, pero solo con los costes: el resto aparece como "no disponible".
 
+Para ver la app completa sin descargar nada, con los datos inventados de la demo:
+
+```bash
+.venv\Scripts\streamlit run app\demo.py
+```
+
 ```bash
 .venv\Scripts\python -m pytest -m "not validation"
 .venv\Scripts\python -m pytest -m validation
 ```
 
-El primero son los tests que corren en la CI (233, sin red ni datos externos). El segundo, la
-validación con datos reales (67 más, con la copia local).
+El primero son los tests que corren en la CI (243, sin red ni datos externos; con la demo
+recorren todas las secciones de principio a fin). El segundo, la validación con datos reales
+(67 más, con la copia local).
 
 ## Datos y licencias
 
@@ -137,9 +149,16 @@ validación con datos reales (67 más, con la copia local).
 | BCE | Tipos de cambio y €STR | Reutilización libre citando la fuente |
 | Yahoo Finance | — | Descartado: sus términos prohíben el acceso automatizado y la redistribución |
 
-Por eso **no hay URL pública**: los datos de iShares no están en el repositorio y la app se
-ejecuta en local, con datos que cada usuario descarga para su uso personal. Las capturas de este
-README muestran cifras derivadas de esos datos. Detalle y fuentes consultadas en
+Por eso hay dos modos:
+
+- **Demo pública** (`app/demo.py`): 8 fondos ficticios con unas 1.200 empresas inventadas,
+  generados por [scripts/build_demo.py](scripts/build_demo.py) con una semilla fija y guardados
+  en `data/demo/`. No usa ningún dato de terceros, y cada pantalla lo dice. Sirve para ver cómo
+  funciona la herramienta, no para sacar conclusiones: las cifras no son reales.
+- **Local con datos reales** (`app/streamlit_app.py`): los datos de iShares no están en el
+  repositorio; cada usuario los descarga para su uso personal con los scripts de arriba.
+
+Las capturas de este README son de la demo. Detalle y fuentes consultadas en
 [docs/FUENTES_Y_LICENCIAS.md](docs/FUENTES_Y_LICENCIAS.md).
 
 ## Limitaciones
@@ -193,5 +212,6 @@ La licencia **no cubre datos de terceros**:
   [app/static/fonts/OFL.txt](app/static/fonts/OFL.txt)).
 
 El repositorio no incluye posiciones ni precios: los scripts los descargan para el uso
-personal de quien los ejecuta. Las cifras de ejemplo del README, de `docs/` y de las
-capturas proceden de esos datos y se citan como ejemplos puntuales.
+personal de quien los ejecuta. Las cifras de ejemplo del texto del README y de `docs/`
+proceden de esos datos y se citan como ejemplos puntuales. Las capturas y los datos de
+`data/demo/` son inventados y quedan bajo la licencia MIT.

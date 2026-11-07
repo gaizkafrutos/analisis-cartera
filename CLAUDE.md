@@ -28,7 +28,8 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0 a 13 hechos (MVP completo y auditado, ver AUDITORIA.md). Despliegue público en espera de permiso de BlackRock (solo local).
+Estado: pasos 0 a 13 hechos (MVP completo y auditado, ver AUDITORIA.md). Repositorio público;
+despliegue público solo como demo con datos sintéticos (`app/demo.py`); con datos reales, solo local.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:
@@ -78,6 +79,7 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
    service.py   analyze(portfolio) -> AnalysisReport   ← único punto de entrada
                                                          │
    app/ (Streamlit) ── solo presentación ────────────────┘   (futuro: FastAPI llama a service.py)
+   app/demo.py: la misma app sobre data/demo/ (datos sintéticos de scripts/build_demo.py)
 ```
 
 ### Reglas de arquitectura
@@ -98,6 +100,9 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
   un script de `scripts/` que escribe ese formato, y el motor solo lee snapshots. Así se cambia
   de fuente según lo que permitan las licencias. Las interfaces `PriceSource` y
   `HoldingsSource` no existen todavía: crearlas cuando haya una segunda fuente real.
+- Qué datos usa el motor lo decide `data/datasets.py` (`RADIOGRAFIA_DATA`: `real` por
+  defecto, `demo`): rutas, universo, ejemplos e índice de referencia. Los textos sobre los
+  datos (referencia, fuentes, aviso de demo) están en `reporting/texts.py`, `DATASET_TEXTS`.
 
 ## Renta fija (alcance reducido en el MVP)
 - Todo ETF se clasifica por tipo de activo: renta variable, renta fija, otros.
@@ -111,6 +116,9 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
 ## Reglas de datos (no negociables)
 - **No inventar datos ni composiciones.** Si falta algo: valor `None`, estado `no_disponible` y
   motivo. Nunca rellenar con supuestos silenciosos.
+- **Única excepción: la demo.** Sus datos son sintéticos a propósito, salen solo de
+  `scripts/build_demo.py`, viven en `data/demo/` con ISIN `ZZDEMO…` y cada pantalla dice que son
+  ficticios. Nunca se mezclan con los reales ni se presentan como reales.
 - Todo dato de referencia lleva **procedencia**: fuente y fecha (`source`, `as_of`).
 - El TER y demás metadatos del universo se transcriben de documentos oficiales del gestor
   (KID/factsheet) con columna de fuente y fecha.
@@ -121,7 +129,8 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
 
 ## Qué va al repositorio
 - **Sí**: código, scripts de ingesta, `data/reference/universe.csv` (metadatos transcritos con
-  fuente), fixtures **pequeñas o sintéticas** para tests, carteras de ejemplo, documentación.
+  fuente), fixtures **pequeñas o sintéticas** para tests, carteras de ejemplo, documentación,
+  y `data/demo/` (sintético, regenerado con `scripts/build_demo.py`; no se edita a mano).
 - **No** (en `.gitignore`): snapshots reales de posiciones y precios (`data/raw/`,
   `data/snapshots/`). Un dato subido a un repo público queda en el historial de git aunque se
   borre después.
@@ -147,10 +156,12 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
 - **Vanguard aplazado**: posiciones mensuales, sin URL estable, mismos límites legales.
 - **Kenneth French**: sin licencia declarada; decidir en la fase 3.
 
-## Datos en el despliegue (pendiente de permiso)
+## Datos en el despliegue
 Los términos de iShares limitan su web a uso personal y no comercial y piden autorización
-previa para reproducir o mostrar sus datos. Hasta tener autorización escrita de BlackRock:
-código público, datos no; la app se ejecuta en local y cada usuario descarga los datos.
+previa para reproducir o mostrar sus datos (lo mismo Xtrackers, Amundi, SPDR y Vanguard). El
+autor no pide permiso (7-nov-2026): código público; la web pública es solo la demo sintética
+(`app/demo.py`, Streamlit Community Cloud con `requirements.txt`); con datos reales, la app se
+ejecuta en local y cada usuario descarga los datos. Nunca servir datos de iShares en público.
 
 ## Skills, conectores y herramientas externas
 - No instalar skills, conectores ni MCP de terceros en el proyecto sin decisión del autor. Si
@@ -227,10 +238,11 @@ código público, datos no; la app se ejecuta en local y cada usuario descarga l
 | Renta fija en divisa | Se incluye en la exposición por divisa; no en empresas, país ni sector | tomada |
 | Datos reales en git | No: snapshots en `.gitignore`; solo fixtures pequeñas/sintéticas | tomada |
 | Precios/rentabilidades | NAV de iShares + tipos de cambio del BCE; yfinance descartado | tomada |
-| Datos en el despliegue | Pedir autorización a BlackRock; mientras tanto, solo ejecución local | pendiente del autor |
+| Datos en el despliegue | Sin pedir permiso a BlackRock: web pública = demo con datos sintéticos; datos reales solo en local | tomada (7-nov-2026) |
 | Licencia del código | MIT (`LICENSE`); no cubre datos de terceros (sección "Licencia" del README) | tomada (6-nov-2026) |
 | Cifras de iShares en README y docs | Se mantienen como ejemplos puntuales, con aviso de procedencia y fecha en cada documento; nada de tablas completas de posiciones | tomada (6-nov-2026) |
-| Repositorio | GitHub privado hasta decidir licencia y datos | tomada |
+| Repositorio | Público desde el 7-nov-2026 (MIT); ramas fusionadas borradas | tomada |
+| Demo pública | 8 fondos ficticios (`ZZDEMO…`), sello "Demo · datos ficticios" y aviso en cada sección; mismas carteras de ejemplo que el modo real | tomada (7-nov-2026) |
 | Entrada: ISIN fuera del universo | ISIN válido pero desconocido no es error: "no cubierto" con su % de cartera | tomada |
 | Entrada: ISIN inválido | Formato o dígito de control incorrecto = error que el usuario debe corregir | tomada |
 | Entrada: importe | Valor de mercado actual en EUR (no precio de compra); la interfaz lo dice | tomada |
@@ -249,6 +261,8 @@ py -3.12 -m venv .venv
 .venv\Scripts\python -m pytest -m "not validation"   # lo mismo que la CI
 .venv\Scripts\python -m pytest -m validation         # requiere snapshots reales locales
 .venv\Scripts\streamlit run app\streamlit_app.py      # app en http://localhost:8501
+.venv\Scripts\streamlit run app\demo.py               # demo con datos sintéticos
+.venv\Scripts\python scripts\build_demo.py            # regenera data/demo/ (semilla fija)
 .venv\Scripts\python scripts\build_universe.py        # descarga iShares y regenera data/reference
 .venv\Scripts\python scripts\build_universe.py --from-raw data\raw\ishares\AAAA-MM-DD  # sin red
 .venv\Scripts\python scripts\build_holdings.py        # posiciones + desgloses -> data/snapshots/

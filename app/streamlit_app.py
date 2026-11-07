@@ -72,6 +72,11 @@ st.set_page_config(page_title="Radiografía de cartera", page_icon="🩻", layou
 # --- the sheet ---------------------------------------------------------------------------------
 
 
+def labels() -> texts.DatasetTexts:
+    """Texts about the data in use (real iShares + ECB, or the synthetic demo)."""
+    return texts.DATASET_TEXTS[service.dataset().key]
+
+
 def contour_svg(width: int = 560, height: int = 280, rings: int = 12) -> str:
     """Nested contour lines (every fifth one thicker, as on a topographic sheet). Decorative.
 
@@ -126,13 +131,18 @@ def masthead() -> None:
         f'.sheet-head::before {{ background-image: url("data:image/svg+xml,{contours}"); }}'
     )
     st.html(f"<style>{css}\n{contour_rule}</style>")
+    stamp = (
+        f'<p class="demo-stamp">{html.escape(texts.DEMO_STAMP)}</p>'
+        if service.dataset().is_demo
+        else ""
+    )
     st.html(
         f"""<header class="sheet-head">
         <div class="title"><h1>Radiografía<br>de cartera</h1>
-        <p class="tagline">{html.escape(texts.APP_TAGLINE)}</p></div></header>"""
+        <p class="tagline">{html.escape(texts.APP_TAGLINE)}</p>{stamp}</div></header>"""
     )
     with st.container(key="disclaimer"):
-        st.info(texts.DISCLAIMER)
+        st.info(labels().disclaimer)
 
 
 def survey_bar(covered: float) -> str:
@@ -160,8 +170,8 @@ def cartouche(report: service.AnalysisReport) -> None:
     if prices_end:
         rows.append(("Precios hasta", format_date(prices_end)))
     rows += [
-        ("Referencia", "Mercado mundial de acciones (iShares MSCI ACWI)"),
-        ("Fuentes", "iShares (BlackRock) y BCE, convertidos a euros"),
+        ("Referencia", texts.DATASET_TEXTS[report.dataset].reference),
+        ("Fuentes", texts.DATASET_TEXTS[report.dataset].sources),
     ]
     items = "".join(f"<dt>{label}</dt><dd>{value}</dd>" for label, value in rows)
     st.html(
@@ -197,9 +207,11 @@ def read_input() -> PortfolioInputResult | None:
         key="mode",
     )
     st.caption(im.AMOUNT_FIELD_HELP)
+    if service.dataset().is_demo and mode != MODE_EXAMPLE:
+        st.caption(texts.DEMO_INPUT_HINT)
 
     if mode == MODE_EXAMPLE:
-        titles = {example.title: example for example in service.EXAMPLES}
+        titles = {example.title: example for example in service.examples()}
         choice = st.selectbox("Cartera de ejemplo", list(titles), key="example")
         example = titles[choice]
         st.caption(example.description)
@@ -297,7 +309,7 @@ def explain(
         if start and end:
             details.append(f"Periodo: {format_date(start)} a {format_date(end)}.")
         if first is not None and first.data_as_of:
-            details.append(texts.DATA_DATE_NOTE.format(date=format_date(first.data_as_of)))
+            details.append(labels().data_date_note.format(date=format_date(first.data_as_of)))
         if extra:
             details.append(extra)
         if details:
@@ -462,9 +474,7 @@ def show_exposure(report: service.AnalysisReport) -> None:
         bar_chart(breakdown, reference, name)
         explain(
             [breakdown],
-            "La marca azul es el mercado mundial de acciones (iShares MSCI ACWI), abierto igual."
-            if reference
-            else None,
+            texts.DATASET_TEXTS[report.dataset].reference_mark if reference else None,
         )
     if lt.uncovered:
         st.markdown("**No desglosado por empresa, país ni sector**")
@@ -700,7 +710,7 @@ def show_details(report: service.AnalysisReport) -> None:
         show_concentration(report)
     with risk:
         show_risk(report)
-    st.caption(texts.DISCLAIMER)
+    st.caption(texts.DATASET_TEXTS[report.dataset].disclaimer)
 
 
 def main() -> None:
@@ -713,10 +723,7 @@ def main() -> None:
 
     with st.container(key="footer"):
         st.caption(texts.PRIVACY_NOTE)
-        st.caption(
-            "Datos: iShares (BlackRock) para composición, comisiones y valores liquidativos; "
-            "BCE para tipos de cambio y €STR. Tipografía Barlow (SIL Open Font License)."
-        )
+        st.caption(labels().credits)
 
 
 main()

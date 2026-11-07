@@ -9,11 +9,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from radiografia.analytics import costs, lookthrough, returns, risk
+from radiografia.data.datasets import DatasetKey
 
-DISCLAIMER = (
+NOT_ADVICE = (
     "Herramienta informativa. No es asesoramiento de inversión ni una recomendación de comprar, "
-    "vender o mantener ningún producto. Los datos proceden de fuentes públicas y pueden contener "
-    "errores o estar desactualizados."
+    "vender o mantener ningún producto."
+)
+DISCLAIMER = (
+    f"{NOT_ADVICE} Los datos proceden de fuentes públicas y pueden contener errores o estar "
+    "desactualizados."
 )
 
 
@@ -27,8 +31,68 @@ PARTIAL_COVERAGE_NOTE = (
     "(el motivo se indica en cada sección)."
 )
 NOT_AVAILABLE_NOTE = "Ninguna posición de tu cartera está en el universo analizado."
-DATA_DATE_NOTE = "Datos de la gestora consultados el {date}."
 HEDGED_LABEL = "cubierto en divisa"
+
+
+@dataclass(frozen=True)
+class DatasetTexts:
+    """What the user is told about the data behind the analysis (real or demo)."""
+
+    reference: str
+    """The world equity market used as reference, as shown in the data block."""
+    reference_in_summary: str
+    """Same, inside a summary sentence: '(en {reference_in_summary}, el 65 %)'."""
+    reference_mark: str
+    """Note under the exposure charts explaining the blue mark."""
+    sources: str
+    credits: str
+    data_date_note: str
+    notice: str | None = None
+    """Shown next to every disclaimer when the data are not real."""
+
+    @property
+    def disclaimer(self) -> str:
+        # the demo replaces "data come from public sources" with "data are invented"
+        return f"{NOT_ADVICE} {self.notice}" if self.notice else DISCLAIMER
+
+
+DEMO_STAMP = "Demo · datos ficticios"
+DEMO_INPUT_HINT = (
+    "En la demo solo se reconocen los fondos ficticios (ISIN que empiezan por ZZDEMO); "
+    "cualquier otro aparecerá como no cubierto."
+)
+DEMO_NOTICE = (
+    "Esta es una demo con datos inventados: los fondos, las empresas y los precios son ficticios "
+    "y no corresponden a ningún producto real. Para analizar ETFs reales, la app se ejecuta en "
+    "local con los datos que cada usuario descarga (ver README)."
+)
+
+DATASET_TEXTS = {
+    DatasetKey.REAL: DatasetTexts(
+        reference="Mercado mundial de acciones (iShares MSCI ACWI)",
+        reference_in_summary="el índice mundial MSCI ACWI",
+        reference_mark="La marca azul es el mercado mundial de acciones (iShares MSCI ACWI), "
+        "abierto igual.",
+        sources="iShares (BlackRock) y BCE, convertidos a euros",
+        credits=(
+            "Datos: iShares (BlackRock) para composición, comisiones y valores liquidativos; "
+            "BCE para tipos de cambio y €STR. Tipografía Barlow (SIL Open Font License)."
+        ),
+        data_date_note="Datos de la gestora consultados el {date}.",
+    ),
+    DatasetKey.DEMO: DatasetTexts(
+        reference="Demo Mercado Mundial (fondo ficticio)",
+        reference_in_summary="el mercado mundial ficticio de la demo",
+        reference_mark="La marca azul es el mercado mundial ficticio de la demo, abierto igual.",
+        sources="Datos sintéticos generados por el proyecto (scripts/build_demo.py)",
+        credits=(
+            "Datos: sintéticos, inventados para la demo; no proceden de ninguna gestora. "
+            "Tipografía Barlow (SIL Open Font License)."
+        ),
+        data_date_note="Datos ficticios con fecha {date}.",
+        notice=DEMO_NOTICE,
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -297,7 +361,7 @@ METRIC_TEXTS.update(
             how_it_is_computed=(
                 "Para cada año se parte del valor al empezar el año y se busca la mayor bajada "
                 "desde un máximo anterior dentro de ese año, con datos diarios en euros. Lo mismo "
-                "con el iShares MSCI ACWI (mercado mundial de acciones)."
+                "con el índice de referencia (mercado mundial de acciones)."
             ),
             limitations=(
                 "Son dos episodios de distinto tipo (2020, caída rápida de las bolsas; 2022, "
@@ -349,7 +413,8 @@ METRIC_TEXTS.update(
                 "el índice cae un 10 %, tu cartera tiende a caer en torno a un 12 %."
             ),
             how_it_is_computed=(
-                "Regresión de tus rentabilidades semanales sobre las del iShares MSCI ACWI, en "
+                "Regresión de tus rentabilidades semanales sobre las del índice de referencia "
+                "(mercado mundial de acciones), en "
                 "euros y por encima del €STR, últimos 5 años."
             ),
             limitations=(

@@ -246,6 +246,31 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
   que publica iShares; ver `docs/VALIDACION.md`. La beta publicada por iShares es frente a su
   propio índice, del que no tenemos la serie: no se puede contrastar.
 
+## Demo con datos sintéticos
+Código: `scripts/build_demo.py` (genera `data/demo/`), `radiografia.data.datasets` (elige los
+datos con la variable `RADIOGRAFIA_DATA`) y `app/demo.py` (la fija a `demo`).
+
+- **Todo es inventado** y se dice en cada pantalla: un sello en la cabecera, el aviso de cada
+  sección, la cartela (referencia y fuentes) y el pie. Los ISIN empiezan por `ZZDEMO`.
+- **Empresas:** unas 1.200, con país, sector y divisa de cotización al azar según pesos fijos
+  (EE. UU. tiene más peso, como en los índices reales) y un tamaño log-normal, mayor en EE. UU.
+  y en tecnología, para que haya concentración como en la realidad.
+- **Fondos:** 8, que eligen empresas con reglas sencillas (todos los desarrollados, las 500
+  mayores de EE. UU., tecnología de EE. UU. con un tope del 20 % por empresa...) y las pesan
+  por tamaño; un 0,4 % en liquidez. Dos fondos de bonos solo sirven para divisa, costes y
+  riesgo. "Demo Mercado Mundial" hace de índice de referencia.
+- **Precios:** valores liquidativos diarios en euros (2015 a 4-nov-2026) con un modelo de
+  factores: regiones (EE. UU., otros desarrollados, emergentes), sectores y bonos, con dos
+  periodos de estrés escritos a mano en 2020 y 2022 para que la comparación de crisis tenga
+  algo que enseñar. La rentabilidad de cada fondo es la mezcla de factores de sus posiciones,
+  menos su TER.
+- **Datos "de la gestora":** la rentabilidad a 5 años del índice se fija como la del fondo
+  más su TER y un pequeño ruido; el €STR es una curva suave inventada.
+- **Reproducible:** semilla fija y ficheros con fin de línea LF y gzip sin fecha; un test
+  regenera los datos y comprueba que coinciden con los de git.
+- **Para qué sirve:** probar en la CI todas las secciones de principio a fin y enseñar la
+  herramienta en público. No sirve para sacar conclusiones sobre ningún producto.
+
 ## Resumen en lenguaje claro
 Código: `radiografia.reporting.summary.build_summary`.
 

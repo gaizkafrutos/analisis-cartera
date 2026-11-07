@@ -1,0 +1,8 @@
+# Runtime dependencies for the public demo (Streamlit Community Cloud, main file app/demo.py).
+# Same list as [project.dependencies] in pyproject.toml; tests/unit/test_requirements.py keeps
+# them in sync. Locally, install the package instead: pip install -e ".[dev]"
+numpy>=2.0
+pandas>=2.2
+pydantic>=2.7
+streamlit>=1.39
+plotly>=5.24

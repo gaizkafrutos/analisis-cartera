@@ -31,7 +31,9 @@ def snapshot():
     return snap
 
 
-@pytest.mark.parametrize("isin", sorted(service.get_universe().funds))
+@pytest.mark.parametrize(
+    "isin", sorted(i for i, f in service.get_universe().funds.items() if f.issuer == "iShares")
+)
 def test_three_year_volatility_matches_issuer(snapshot, isin):
     published = snapshot.characteristics[
         (snapshot.characteristics["isin"] == isin)

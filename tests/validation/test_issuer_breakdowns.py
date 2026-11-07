@@ -47,7 +47,8 @@ def snapshot():
 
 def _cases():
     universe = load_universe()
-    for isin in sorted(universe.funds):
+    # iShares only: the other issuers' published breakdowns are not in the local snapshot
+    for isin in sorted(i for i, f in universe.funds.items() if f.issuer == "iShares"):
         for section in SECTIONS:
             marks = []
             if (isin, section) in KNOWN_DISCREPANCIES:

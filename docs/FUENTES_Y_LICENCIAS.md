@@ -171,6 +171,36 @@ composición del ETF de EE. UU. que replica el mismo índice, tomada del formula
 - **Dónde se usa** (decisión del autor al cerrar la v1, 7-nov-2026): la URL pública sigue
   sirviendo la demo sintética; el modo SEC (`app/public.py`) se ejecuta en local.
 
+## Más gestoras, CNMV y SEC (revisión del 7-nov-2026, fase 2 de la v1)
+
+Antes de leer los ficheros de otras gestoras se revisaron sus términos de uso y su robots.txt
+(este, pedido con la identidad propia de `curl`; el de Xtrackers respondió "429" y se leyó en el
+navegador). Citas breves y literales de cada texto; no es asesoramiento jurídico.
+
+| Fuente | Términos de uso | robots.txt | Decisión |
+|---|---|---|---|
+| Vanguard ([términos](https://www.vanguard.co.uk/professional/terms-and-conditions)) | Licencia para descargar "solely for your personal, informational and non-commercial use"; prohíbe el acceso automatizado repetido ("repeated automated access to this website") | Permite todo | Solo subida manual; no se ha escrito lector (sin ISIN por posición y datos mensuales) |
+| Xtrackers ([términos](https://etf.dws.com/en-gb/footer/terms-of-use/)) | "not permitted to download, reproduce and/or distribute" sin consentimiento escrito, "other than what is permitted by law" | Cierra `/etfdata/*`, `/export/*` y `/api/`, justo las rutas de descarga | Solo subida manual del Excel que descarga el usuario |
+| Amundi ([términos](https://www.amundietf.co.uk/en/professional/terms-of-use)) | Permite descargar o imprimir "strictly for your personal use"; reproducir, no | Solo cierra parámetros de búsqueda | Solo subida manual (por coherencia: no prohíbe la automatización de forma expresa) |
+| SPDR ([términos](https://www.ssga.com/uk/en_gb/footer/terms-and-conditions)) | Solo "producing print-outs for your own personal use" | No cierra los ficheros de posiciones | Solo subida manual |
+| Invesco ([términos](https://www.invesco.com/emea/en/insights/footer/site-policies.html)) | "download or print individual sections of the site for personal use and information only" | `etf.invesco.com` no tiene | No cubierto: según los repositorios de referencia, su fichero no trae país ni sector |
+| CNMV ([nota legal](https://www.cnmv.es/portal/Utilidades/NotaLegal.aspx)) | Reutilización fiel permitida; se puede usar "para realizar cálculos que se difundan por el usuario" | Solo cierra `*.shtml` | No cubierto: las carteras (`FONDCART`, `SOCCART`, trimestrales) son de fondos y SICAV españoles; los ETFs UCITS irlandeses o luxemburgueses no están |
+| SEC (N-PORT) | Ver "modo SEC" arriba | — | Ya integrada; los fondos de EE. UU. no se venden a minoristas españoles, nada más que añadir |
+
+- **Descarga de los ficheros de ejemplo:** a mano, en el navegador, como inversor particular en
+  España (aceptando el aviso de entrada de Xtrackers y Amundi con permiso del autor), un fichero
+  por gestora, el 7-nov-2026. Se guardan en `data/raw/muestras/` (fuera de git) y solo sirven
+  para escribir los lectores y la validación local; los tests usan ficheros sintéticos con el
+  mismo formato.
+- **Repositorios de referencia** (leídos, no instalados): `ucits-etf-issuer-holdings` (MIT) y
+  `portfolio-scraper` (Apache-2.0) leen APIs internas de las gestoras, no los ficheros que
+  descarga una persona, y el primero recomienda un proxy para iShares desde servidores. Ninguno
+  encaja con las reglas del proyecto; sirvieron para saber qué campos da cada gestora.
+- **ETFs añadidos al universo:** Xtrackers MSCI World 1C, Amundi Core MSCI World Acc y SPDR MSCI
+  ACWI, con comisión, divisa, réplica y fechas transcritas de su ficha oficial
+  (`data/reference/universe_manual.csv`, con la URL y la fecha de cada uno). Su moneda base no
+  aparece en esas fichas y se deja vacía.
+
 ## Fuentes consultadas (5-nov-2026)
 - Yahoo, Términos de servicio: https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html y
   https://legal.yahoo.com/ie/en/yahoo/terms/otos/index.html

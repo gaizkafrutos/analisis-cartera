@@ -21,10 +21,20 @@ def universe():
     return load_universe()
 
 
+ISSUER_SITES = {
+    "iShares": "https://www.ishares.com/",
+    "Xtrackers": "https://etf.dws.com/",
+    "Amundi": "https://www.amundietf.es/",
+    "SPDR": "https://www.ssga.com/",
+}
+
+
 def test_size_and_asset_classes(universe):
-    assert len(universe.funds) == 15
+    assert len(universe.funds) == 18
     counts = Counter(f.asset_class for f in universe.funds.values())
-    assert counts == {AssetClass.EQUITY: 12, AssetClass.FIXED_INCOME: 3}
+    assert counts == {AssetClass.EQUITY: 15, AssetClass.FIXED_INCOME: 3}
+    issuers = Counter(f.issuer for f in universe.funds.values())
+    assert issuers == {"iShares": 15, "Xtrackers": 1, "Amundi": 1, "SPDR": 1}
 
 
 def test_benchmark_fund_is_in_the_universe(universe):
@@ -33,7 +43,7 @@ def test_benchmark_fund_is_in_the_universe(universe):
 
 def test_every_fund_has_provenance(universe):
     for fund in universe.funds.values():
-        assert fund.source_url.startswith("https://www.ishares.com/")
+        assert fund.source_url.startswith(ISSUER_SITES[fund.issuer])
         assert fund.retrieved_on is not None
 
 
@@ -54,7 +64,14 @@ def test_all_funds_are_physical(universe):
 
 @pytest.mark.parametrize(
     ("ticker", "isin"),
-    [("EUNL", "IE00B4L5Y983"), ("IWDA", "IE00B4L5Y983"), ("SXR8", "IE00B5BMR087")],
+    [
+        ("EUNL", "IE00B4L5Y983"),
+        ("IWDA", "IE00B4L5Y983"),
+        ("SXR8", "IE00B5BMR087"),
+        ("XDWD", "IE00BJ0KDQ92"),
+        ("MWRD", "IE000BI8OT95"),
+        ("SPYY", "IE00B44Z5B48"),
+    ],
 )
 def test_common_spanish_broker_tickers_resolve(universe, ticker, isin):
     result = build_portfolio([RawPosition(identifier=ticker, amount_eur=100)], universe.index())

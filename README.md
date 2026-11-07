@@ -125,8 +125,9 @@ py -3.12 -m venv .venv
 (En Linux/macOS, `.venv/bin/` en lugar de `.venv\Scripts\`.)
 
 Los dos scripts descargan los datos de iShares y del BCE a `data/` (fuera del repositorio). Sin
-ellos, la app arranca en la demo; en «¿Con qué datos?» se puede elegir «Tus ficheros de iShares»
-y subir el CSV de posiciones de cada ETF, que se lee en memoria y no se guarda.
+ellos, la app arranca en la demo; en «¿Con qué datos?» se puede elegir «Tus ficheros de la
+gestora» y subir el fichero de posiciones de cada ETF (iShares, Xtrackers, Amundi o SPDR), que
+se lee en memoria y no se guarda.
 
 Para ver la app completa sin descargar nada, con los datos inventados de la demo:
 
@@ -139,9 +140,9 @@ Para ver la app completa sin descargar nada, con los datos inventados de la demo
 .venv\Scripts\python -m pytest -m validation
 ```
 
-El primero son los tests que corren en la CI (281, sin red ni datos externos; con la demo y
+El primero son los tests que corren en la CI (320, sin red ni datos externos; con la demo y
 los datos públicos recorren todas las secciones de principio a fin). El segundo, la validación
-con datos reales (68 más, con la copia local).
+con datos reales (71 más, con la copia local y los ficheros de ejemplo de cada gestora).
 
 ## Datos y licencias
 
@@ -163,8 +164,11 @@ Por eso hay cuatro modos:
   generados por [scripts/build_demo.py](scripts/build_demo.py) con una semilla fija y guardados
   en `data/demo/`. No usa ningún dato de terceros, y cada pantalla lo dice. Sirve para ver cómo
   funciona la herramienta, no para sacar conclusiones: las cifras no son reales.
-- **Tus ficheros de iShares** (en la demo pública y en local): cada usuario descarga de la web
-  de iShares el CSV de posiciones de sus ETFs y lo sube; se lee en memoria y no se guarda.
+- **Tus ficheros de la gestora** (en la demo pública y en local): cada usuario descarga de la
+  web de la gestora el fichero de posiciones de sus ETFs (iShares, Xtrackers, Amundi o SPDR) y lo
+  sube; se lee en memoria y no se guarda. La misma empresa se reconoce entre gestoras
+  ([docs/VALIDACION.md](docs/VALIDACION.md): solapamiento del 92–97 % entre ETFs del mismo
+  índice de dos gestoras).
   Calcula costes, exposición, concentración y solapamiento; el riesgo no, porque no hay precios.
 - **Local con datos reales** (`app/streamlit_app.py`): los datos de iShares no están en el
   repositorio; cada usuario los descarga para su uso personal con los scripts de arriba.
@@ -174,8 +178,9 @@ Las capturas de este README son de la demo. Detalle y fuentes consultadas en
 
 ## Limitaciones
 
-- **Universo cerrado:** 15 ETFs UCITS de iShares (12 de renta variable, 3 de renta fija). Los
-  fondos indexados no cotizados, muy usados en España, y los ETFs de otras gestoras no están.
+- **Universo cerrado:** 18 ETFs UCITS: 15 de iShares (12 de renta variable, 3 de renta fija) y
+  uno de Xtrackers, Amundi y SPDR, que solo se analizan subiendo su fichero (sin precios ni
+  riesgo). Vanguard, Invesco y los fondos indexados no cotizados, muy usados en España, no están.
 - **Los bonos no se abren:** cuentan para la divisa, los costes y el riesgo, pero no para país,
   sector o empresas.
 - **Las posiciones son una foto** con fecha. El país es el domicilio de cada empresa, no de dónde

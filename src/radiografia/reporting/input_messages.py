@@ -70,16 +70,17 @@ HOLDINGS_FILE_MESSAGES: dict[HoldingsFileError, str] = {
         "no sirve para el análisis: descarga el CSV de «Detailed Holdings and Analytics»."
     ),
     HoldingsFileError.SPREADSHEET: (
-        "Es una hoja de cálculo. De momento solo se lee el CSV de posiciones de iShares, tal como "
-        "se descarga (sin abrirlo ni guardarlo con Excel)."
+        "Es una hoja de cálculo, pero no el fichero de posiciones de iShares, Xtrackers, Amundi "
+        "ni SPDR tal como se descarga. Descárgalo de nuevo de la ficha del ETF y súbelo sin "
+        "abrirlo ni guardarlo con Excel."
     ),
     HoldingsFileError.NOT_RECOGNISED: (
-        "No es un fichero de posiciones de iShares reconocible. Debe empezar por «Fund Holdings "
-        "as of»: descárgalo de la web de iShares de Reino Unido, en inglés, sin modificarlo."
+        "No es un fichero de posiciones reconocible. Se leen el CSV de iShares (web de Reino "
+        "Unido, en inglés) y los Excel de posiciones de Xtrackers, Amundi y SPDR, sin modificar."
     ),
     HoldingsFileError.BROKEN: (
-        "Parece un fichero de posiciones de iShares, pero no se puede leer ({detail}). "
-        "Descárgalo de nuevo sin abrirlo con Excel."
+        "Parece un fichero de posiciones de {issuer}, pero no se puede leer ({detail}). "
+        "Descárgalo de nuevo y súbelo sin abrirlo ni guardarlo con Excel."
     ),
     HoldingsFileError.NO_POSITIONS: "El fichero no tiene posiciones con valor de mercado.",
 }
@@ -94,5 +95,9 @@ UPLOAD_PROBLEM_MESSAGES = {
 }
 
 
-def format_holdings_file_error(error: HoldingsFileError, detail: str | None = None) -> str:
-    return HOLDINGS_FILE_MESSAGES[error].format(detail=detail or "formato inesperado")
+def format_holdings_file_error(
+    error: HoldingsFileError, detail: str | None = None, issuer: str | None = None
+) -> str:
+    return HOLDINGS_FILE_MESSAGES[error].format(
+        detail=detail or "formato inesperado", issuer=issuer or "una gestora"
+    )

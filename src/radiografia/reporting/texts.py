@@ -68,8 +68,8 @@ DEMO_INPUT_HINT = (
 )
 DEMO_NOTICE = (
     "Esta es una demo con datos inventados: los fondos, las empresas y los precios son ficticios "
-    "y no corresponden a ningún producto real. Para analizar tus ETFs reales de iShares, elige "
-    "«Tus ficheros de iShares» y sube los ficheros que descargas de su web."
+    "y no corresponden a ningún producto real. Para analizar tus ETFs reales, elige «Tus "
+    "ficheros de la gestora» y sube los ficheros de posiciones que descargas de su web."
 )
 
 PUBLIC_NOTICE = (
@@ -85,14 +85,20 @@ UPLOAD_NOTICE = (
 DATA_CHOICE_LABEL = "¿Con qué datos?"
 DATA_CHOICE_HELP = (
     "La demo usa fondos y empresas inventados. Con tus ficheros, la app analiza la composición "
-    "real de tus ETFs de iShares a partir de lo que descargas de su web."
+    "real de tus ETFs de iShares, Xtrackers, Amundi o SPDR a partir de lo que descargas de la "
+    "web de cada gestora."
 )
 UPLOAD_TITLE = "Ficheros de posiciones de tus ETFs"
 UPLOAD_HELP = (
-    "Para cada ETF de iShares de tu cartera, abre su ficha en la web de iShares de Reino Unido "
-    "(en inglés) y, en la sección «Holdings», pulsa «Detailed Holdings and Analytics»: se "
-    "descarga un CSV (por ejemplo, SWDA_holdings.csv). Súbelo aquí sin modificarlo. Los ficheros "
-    "se leen en memoria y no se guardan."
+    "Descarga de la ficha de cada ETF de tu cartera su fichero de posiciones completo y súbelo "
+    "aquí sin modificarlo. Los ficheros se leen en memoria y no se guardan.\n\n"
+    "- **iShares:** web de Reino Unido en inglés, sección «Holdings», «Detailed Holdings and "
+    "Analytics» (un CSV, por ejemplo SWDA_holdings.csv).\n"
+    "- **Xtrackers:** «Descargar la lista completa de componentes» (un Excel).\n"
+    "- **Amundi:** pestaña de posiciones, «Descargar todas las posiciones del fondo» (un Excel).\n"
+    "- **SPDR:** «Download Daily Holdings» (un Excel).\n\n"
+    "La app solo conoce algunos ETFs de cada gestora (sus comisiones están transcritas de sus "
+    "documentos); el fichero de otro ETF no se usa."
 )
 UPLOAD_FUND_LABEL = "¿De qué ETF es?"
 UPLOAD_NO_FILES = (
@@ -155,20 +161,20 @@ DATASET_TEXTS = {
         choice="Modo SEC (gemelos de EE. UU.)",
     ),
     DatasetKey.UPLOAD: DatasetTexts(
-        reference="Mercado mundial de acciones (iShares MSCI ACWI), solo si subes también su "
-        "fichero",
+        reference="Mercado mundial de acciones (MSCI ACWI), solo si subes también el fichero "
+        "de un ETF que lo replique",
         reference_in_summary="el índice mundial MSCI ACWI",
-        reference_mark="La marca azul es el mercado mundial de acciones (iShares MSCI ACWI), "
-        "abierto igual.",
-        sources="Tus ficheros de posiciones de iShares (BlackRock); comisiones de sus documentos",
+        reference_mark="La marca azul es el mercado mundial de acciones (MSCI ACWI), abierto "
+        "igual.",
+        sources="Tus ficheros de posiciones de cada gestora; comisiones de sus documentos",
         credits=(
-            "Datos: los ficheros de posiciones de iShares (BlackRock) que has subido, para la "
-            "composición; comisiones transcritas de los documentos de la gestora. Tipografía "
-            "Barlow (SIL Open Font License)."
+            "Datos: los ficheros de posiciones que has subido, publicados por cada gestora "
+            "(iShares, Xtrackers, Amundi, SPDR), para la composición; comisiones transcritas de "
+            "sus documentos. Tipografía Barlow (SIL Open Font License)."
         ),
         data_date_note="Posiciones de tus ficheros, con fecha {date}.",
         notice=UPLOAD_NOTICE,
-        choice="Tus ficheros de iShares",
+        choice="Tus ficheros de la gestora",
     ),
 }
 

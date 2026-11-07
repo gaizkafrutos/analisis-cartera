@@ -275,20 +275,38 @@ Código: `radiografia.data.datasets`.
   sin datos abren la demo en lugar de un análisis vacío, y nada se descarga mientras la app está
   en marcha.
 - **En la app,** el selector «¿Con qué datos?» cambia de datos solo para esa sesión: la demo,
-  «Tus ficheros de iShares» y, si hay snapshot local, «Tus datos locales». El modo SEC solo se
+  «Tus ficheros de la gestora» y, si hay snapshot local, «Tus datos locales». El modo SEC solo se
   ofrece al arrancar con `app/public.py`: la URL pública sirve la demo.
 
-## Tus ficheros de iShares (subida en memoria)
-Código: `radiografia.input.holdings_file` (lee y comprueba cada fichero),
+## Tus ficheros de la gestora (subida en memoria)
+Código: `radiografia.data.sources` (un lector por gestora detrás de `HoldingsSource`,
+`registry.py`), `radiografia.input.holdings_file` (reconoce y comprueba cada fichero),
 `radiografia.service` (`read_holdings_file`, `snapshot_from_uploads`) y `app/streamlit_app.py`.
 
-- **Qué se sube:** el CSV de posiciones de cada ETF, tal como se descarga de la ficha de iShares
-  (web de Reino Unido, en inglés, «Detailed Holdings and Analytics»). Es el mismo fichero que usan
-  los snapshots locales, así que el análisis es idéntico: un test de validación sube los CSV de
-  una descarga local y compara exposiciones, concentración y solapamiento con el snapshot.
-- **Qué fondo es:** el CSV no trae el ISIN del ETF. La app lo propone a partir del ticker del
-  nombre del fichero (`SWDA_holdings.csv` → iShares Core MSCI World) solo si ese ticker es de un
-  único ETF del universo; el usuario lo confirma o lo cambia.
+- **Qué se sube:** el fichero de posiciones completo de cada ETF, tal como se descarga de su
+  ficha. Ninguna de estas gestoras permite descargarlo de forma automática o reutilizarlo sin
+  permiso (ver `FUENTES_Y_LICENCIAS.md`), así que la app nunca lo descarga: lo sube el usuario.
+  - **iShares:** CSV de «Detailed Holdings and Analytics» (web de Reino Unido, en inglés). Es el
+    mismo fichero que usan los snapshots locales: un test de validación sube los CSV de una
+    descarga local y compara exposiciones, concentración y solapamiento con el snapshot.
+  - **Xtrackers:** Excel de «Descargar la lista completa de componentes». Trae el ISIN de cada
+    posición, el país y el sector en el idioma de la web, y el peso en tanto por uno. **No trae
+    la fecha de las posiciones:** se usa la de la hoja, que es el día de la descarga (puede ir
+    uno o dos días por delante de las posiciones).
+  - **Amundi:** Excel de «Descargar todas las posiciones del fondo». Trae ISIN, país y sector en
+    español y la fecha ("Datos correctos a"). No trae líneas de liquidez: los pesos suman algo
+    menos del 100 % y se reparten en proporción.
+  - **SPDR:** Excel de «Download Daily Holdings». Trae ISIN, valor de mercado y la fecha. El
+    país es el de la bolsa donde cotiza la acción ("Trade Country Name"), no siempre el de la
+    empresa. Las líneas de liquidez y de futuros no tienen peso: se reconocen por su precio (1
+    para divisas) y los futuros cuentan por su nocional, como en iShares.
+  - **Etiquetas:** países y sectores se traducen a los que usa el motor (los de iShares en
+    inglés) con las tablas de `data/sources/labels.py`; una etiqueta desconocida se deja como
+    está, nunca se adivina. Los futuros, warrants y la liquidez se marcan como en iShares.
+- **Qué fondo es:** el CSV de iShares no trae el ISIN del ETF; la app lo propone a partir del
+  ticker del nombre del fichero (`SWDA_holdings.csv` → iShares Core MSCI World) solo si ese
+  ticker es de un único ETF del universo. Los Excel de las demás gestoras traen el ISIN (en el
+  nombre o en la cabecera). El usuario siempre lo confirma o lo cambia.
 - **Comprobaciones:** fichero vacío o de más de 10 MB; Excel de la ficha (se reconoce, pero no
   trae el país de cada posición: se pide el CSV); otra hoja de cálculo; texto que no empieza por
   «Fund Holdings as of»; cabecera o columnas que faltan; sin valor de mercado. Cada caso tiene
@@ -300,9 +318,31 @@ Código: `radiografia.input.holdings_file` (lee y comprueba cada fichero),
   el mercado mundial solo aparece si se sube también el fichero del iShares MSCI ACWI.
 - **Privacidad:** los ficheros se leen en memoria en la sesión del usuario. No se escriben en
   disco, no se guardan en caché compartida entre usuarios y no se registran.
-- **Solo ETFs del universo:** el fichero de un ETF de iShares que no está entre los 15 del
-  universo no se usa, porque faltan su comisión y su tipo de activo transcritos de sus
-  documentos.
+- **Solo ETFs del universo:** el fichero de un ETF que no está en el universo (15 de iShares,
+  Xtrackers MSCI World, Amundi Core MSCI World y SPDR MSCI ACWI) no se usa, porque faltan su
+  comisión y su tipo de activo transcritos de sus documentos.
+
+## La misma empresa en ETFs de distintas gestoras
+Código: `radiografia.analytics.company_names` y `lookthrough._same_company_across_issuers`.
+
+Cada gestora escribe los nombres a su manera ("APPLE", "APPLE INC", "Apple Inc.") e iShares no
+publica el ISIN de cada posición. Si la cartera tiene ETFs de una sola gestora, el cálculo es el
+de siempre (nombre sin la clase de acción + país, validado contra iShares). Si mezcla gestoras,
+una empresa es la misma cuando:
+1. su nombre normalizado coincide en el mismo país (sin tildes, signos, espacios, forma jurídica
+   ni marcas de clase: "Apple Inc." y "APPLE" son "APPLE");
+2. publican el mismo ISIN (entre Xtrackers, Amundi y SPDR);
+3. en el mismo país, un nombre de al menos 6 letras es el único que empieza por el otro
+   ("APPLIED MATERIAL" / "APPLIED MATERIALS");
+4. las gestoras no coinciden en el país (Shell: Reino Unido para iShares, Países Bajos para
+   Xtrackers): un nombre con un solo país en cada gestora es una sola empresa, con el país de
+   iShares. Un nombre con dos países dentro de una misma gestora (EQT de Suecia y EQT de EE. UU.)
+   nunca se junta así.
+
+Cada empresa toma el nombre y el país de iShares cuando está en un ETF de iShares. Las empresas
+que han cambiado de nombre o se abrevian distinto ("GENERAL ELECTRIC" / "GE AEROSPACE",
+"INTL BUSINESS MACHINES") quedan como dos, así que el solapamiento entre gestoras sale algo por
+debajo del real. Lo medido está en `VALIDACION.md`, "Otras gestoras".
 
 ## Demo con datos sintéticos
 Código: `scripts/build_demo.py` (genera `data/demo/`) y `app/demo.py` (fija `RADIOGRAFIA_DATA`

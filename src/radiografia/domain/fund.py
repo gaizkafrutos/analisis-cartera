@@ -59,7 +59,8 @@ class Fund(BaseModel):
     """Total expense ratio as a fraction per year (0.002 = 0.20 %)."""
     share_class_currency: str | None
     """None when the issuer does not publish it (not inferred from the base currency)."""
-    base_currency: str
+    base_currency: str | None
+    """None when the issuer does not publish it on the documents used (not inferred)."""
     currency_hedged: bool
     income_treatment: IncomeTreatment
     replication: Replication

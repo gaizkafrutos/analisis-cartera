@@ -30,7 +30,8 @@ def snapshot():
 
 
 def _isins():
-    return sorted(service.get_universe().funds)
+    # only iShares: the local price snapshot is built from its workbooks (build_prices.py)
+    return sorted(i for i, f in service.get_universe().funds.items() if f.issuer == "iShares")
 
 
 @pytest.mark.parametrize("isin", _isins())

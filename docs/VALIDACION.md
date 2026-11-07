@@ -80,8 +80,8 @@ Minkowski): √(12 × 36/35) × 2 × 0,005 ÷ NAV mínimo de la ventana.
 **Lo que confirma:** la gestora usa la desviación típica muestral (con la poblacional saldría
 ~0,16 puntos menos).
 
-## Versión pública: gemelos de EE. UU. frente a los datos de iShares (fase 1 de datos reales)
-La versión pública aproxima la composición de cada ETF UCITS con la del ETF de EE. UU. que
+## Modo SEC: gemelos de EE. UU. frente a los datos de iShares (fase 1 de datos reales)
+El modo SEC aproxima la composición de cada ETF UCITS con la del ETF de EE. UU. que
 replica el mismo índice (formulario N-PORT de la SEC). Comparación, fondo a fondo, entre lo que
 calcula la app con los datos exactos de iShares (posiciones a 4-nov-2026) y con el gemelo (datos
 de la SEC a 30-jun, 31-jul o 31-ago-2026). Se regenera con `scripts/build_public.py`.
@@ -108,7 +108,7 @@ solapamiento World–S&P 500 70,7 % / 66,4 %, 10 mayores 35,0 % / 34,4 %, nº ef
   casi todo el índice (2.217).
 
 **Gemelos con un índice solo parecido: descartados.** El error era demasiado grande para
-llamarlo aproximación, así que esos ETFs salen como "no cubierto" en la versión pública:
+llamarlo aproximación, así que esos ETFs salen como "no cubierto" en el modo SEC:
 
 | ETF UCITS (índice) | Gemelo (índice) | 10 mayores | Nº efectivo | Empresas |
 |---|---|---|---|---|

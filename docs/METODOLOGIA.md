@@ -246,7 +246,7 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
   que publica iShares; ver `docs/VALIDACION.md`. La beta publicada por iShares es frente a su
   propio índice, del que no tenemos la serie: no se puede contrastar.
 
-## Versión pública: composición de los gemelos de EE. UU. (SEC)
+## Modo SEC: composición de los gemelos de EE. UU. (SEC)
 Código: `scripts/build_public.py` (descarga), `radiografia.data.sources.sec_nport` (lector),
 `data/reference/twins.csv` (parejas), `data/public/` (datos, en git) y `app/public.py`.
 
@@ -263,12 +263,50 @@ Código: `scripts/build_public.py` (descarga), `radiografia.data.sources.sec_npo
   como no disponible.
 - **Clase cubierta de renta fija sin posiciones:** cuenta para la divisa (la de cobertura) aunque
   no haya fichero, porque esa regla no depende de las posiciones.
-- **Riesgo:** aún no en la versión pública. `twin_returns.csv` ya guarda las rentabilidades
+- **Riesgo:** aún no en el modo SEC. `twin_returns.csv` ya guarda las rentabilidades
   mensuales de cada gemelo para la siguiente fase.
 
+## Qué datos usa la app
+Código: `radiografia.data.datasets`.
+
+- **Por defecto:** la variable `RADIOGRAFIA_DATA` si existe (`app/demo.py` la fija a `demo` y
+  `app/public.py` a `public`). Si no, los datos reales locales cuando hay un snapshot en
+  `data/snapshots/`, y la demo cuando no lo hay. Así, un clon recién descargado o un despliegue
+  sin datos abren la demo en lugar de un análisis vacío, y nada se descarga mientras la app está
+  en marcha.
+- **En la app,** el selector «¿Con qué datos?» cambia de datos solo para esa sesión: la demo,
+  «Tus ficheros de iShares» y, si hay snapshot local, «Tus datos locales». El modo SEC solo se
+  ofrece al arrancar con `app/public.py`: la URL pública sirve la demo.
+
+## Tus ficheros de iShares (subida en memoria)
+Código: `radiografia.input.holdings_file` (lee y comprueba cada fichero),
+`radiografia.service` (`read_holdings_file`, `snapshot_from_uploads`) y `app/streamlit_app.py`.
+
+- **Qué se sube:** el CSV de posiciones de cada ETF, tal como se descarga de la ficha de iShares
+  (web de Reino Unido, en inglés, «Detailed Holdings and Analytics»). Es el mismo fichero que usan
+  los snapshots locales, así que el análisis es idéntico: un test de validación sube los CSV de
+  una descarga local y compara exposiciones, concentración y solapamiento con el snapshot.
+- **Qué fondo es:** el CSV no trae el ISIN del ETF. La app lo propone a partir del ticker del
+  nombre del fichero (`SWDA_holdings.csv` → iShares Core MSCI World) solo si ese ticker es de un
+  único ETF del universo; el usuario lo confirma o lo cambia.
+- **Comprobaciones:** fichero vacío o de más de 10 MB; Excel de la ficha (se reconoce, pero no
+  trae el país de cada posición: se pide el CSV); otra hoja de cálculo; texto que no empieza por
+  «Fund Holdings as of»; cabecera o columnas que faltan; sin valor de mercado. Cada caso tiene
+  su mensaje. Si el fichero es casi todo acciones y el ETF elegido es de bonos (o al revés), no
+  se usa y se avisa: probablemente se eligió mal el fondo.
+- **Qué se calcula:** costes (del universo), exposición, concentración y solapamiento de los ETFs
+  con fichero. Los ETFs de renta variable sin fichero se listan y quedan como "no cubierto". Sin
+  valores liquidativos, la parte de riesgo no está disponible en este modo; la comparación con
+  el mercado mundial solo aparece si se sube también el fichero del iShares MSCI ACWI.
+- **Privacidad:** los ficheros se leen en memoria en la sesión del usuario. No se escriben en
+  disco, no se guardan en caché compartida entre usuarios y no se registran.
+- **Solo ETFs del universo:** el fichero de un ETF de iShares que no está entre los 15 del
+  universo no se usa, porque faltan su comisión y su tipo de activo transcritos de sus
+  documentos.
+
 ## Demo con datos sintéticos
-Código: `scripts/build_demo.py` (genera `data/demo/`), `radiografia.data.datasets` (elige los
-datos con la variable `RADIOGRAFIA_DATA`) y `app/demo.py` (la fija a `demo`).
+Código: `scripts/build_demo.py` (genera `data/demo/`) y `app/demo.py` (fija `RADIOGRAFIA_DATA`
+a `demo`).
 
 - **Todo es inventado** y se dice en cada pantalla: un sello en la cabecera, el aviso de cada
   sección, la cartela (referencia y fuentes) y el pie. Los ISIN empiezan por `ZZDEMO`.
@@ -282,7 +320,8 @@ datos con la variable `RADIOGRAFIA_DATA`) y `app/demo.py` (la fija a `demo`).
 - **Precios:** valores liquidativos diarios en euros (2015 a 4-nov-2026) con un modelo de
   factores: regiones (EE. UU., otros desarrollados, emergentes), sectores y bonos, con dos
   periodos de estrés escritos a mano en 2020 y 2022 para que la comparación de crisis tenga
-  algo que enseñar. La rentabilidad de cada fondo es la mezcla de factores de sus posiciones,
+  algo que enseñar. En la app y el resumen se llaman "2020 (caída ficticia)" y "2022 (caída
+  ficticia)", no por las crisis reales. La rentabilidad de cada fondo es la mezcla de factores de sus posiciones,
   menos su TER.
 - **Datos "de la gestora":** la rentabilidad a 5 años del índice se fija como la del fondo
   más su TER y un pequeño ruido; el €STR es una curva suave inventada.

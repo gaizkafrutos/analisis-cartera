@@ -160,6 +160,11 @@ def costs_point(costs: CostsResult) -> SummaryPoint | None:
     return SummaryPoint(topic=Topic.COSTS, text=text)
 
 
+def _sentence(text: str) -> str:
+    """Close a sentence once: a country such as "EE. UU." already ends with a period."""
+    return text if text.endswith(".") else text + "."
+
+
 def geography_point(
     lookthrough: LookThroughResult,
     reference: LookThroughResult | None,
@@ -174,7 +179,7 @@ def geography_point(
         ref = _weight(reference.geography, top.label)
         if ref is not None:
             text += f" (en {reference_name}, el {_pct(ref)})"
-    text += "."
+    text = _sentence(text)
     # the runner-up is a country: cash is not one, and under 1 % it would read "con el 0 %"
     others = [item for item in geography.items[1:] if item.label != CASH_LABEL]
     if others and others[0].weight >= 0.005:

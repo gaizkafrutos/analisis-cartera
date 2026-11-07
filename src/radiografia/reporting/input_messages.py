@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from radiografia.domain.portfolio import InputError, InputErrorCode, NotCoveredReason
+from radiografia.input.holdings_file import MAX_FILE_BYTES, HoldingsFileError
 
 AMOUNT_FIELD_LABEL = "Valor actual (€)"
 AMOUNT_FIELD_HELP = (
@@ -56,3 +57,42 @@ NOT_COVERED_MESSAGES: dict[NotCoveredReason, str] = {
 def format_input_error(error: InputError) -> str:
     message = INPUT_ERROR_MESSAGES[error.code].format(value=error.value or "")
     return f"Fila {error.row}: {message}" if error.row is not None else message
+
+
+HOLDINGS_FILE_MESSAGES: dict[HoldingsFileError, str] = {
+    HoldingsFileError.EMPTY: "El fichero está vacío.",
+    HoldingsFileError.TOO_LARGE: (
+        f"El fichero ocupa más de {MAX_FILE_BYTES // (1024 * 1024)} MB; no parece un fichero de "
+        "posiciones de un ETF."
+    ),
+    HoldingsFileError.ISHARES_WORKBOOK: (
+        "Es el Excel de la ficha de iShares. Ese fichero no trae el país de cada empresa, así que "
+        "no sirve para el análisis: descarga el CSV de «Detailed Holdings and Analytics»."
+    ),
+    HoldingsFileError.SPREADSHEET: (
+        "Es una hoja de cálculo. De momento solo se lee el CSV de posiciones de iShares, tal como "
+        "se descarga (sin abrirlo ni guardarlo con Excel)."
+    ),
+    HoldingsFileError.NOT_RECOGNISED: (
+        "No es un fichero de posiciones de iShares reconocible. Debe empezar por «Fund Holdings "
+        "as of»: descárgalo de la web de iShares de Reino Unido, en inglés, sin modificarlo."
+    ),
+    HoldingsFileError.BROKEN: (
+        "Parece un fichero de posiciones de iShares, pero no se puede leer ({detail}). "
+        "Descárgalo de nuevo sin abrirlo con Excel."
+    ),
+    HoldingsFileError.NO_POSITIONS: "El fichero no tiene posiciones con valor de mercado.",
+}
+
+UPLOAD_PROBLEM_MESSAGES = {
+    "unknown_fund": "Este ETF no está en el universo de la app (no se conocen su comisión ni su "
+    "tipo de activo), así que su fichero no se usa.",
+    "asset_class_mismatch": (
+        "El fichero no encaja con el ETF elegido: uno es de acciones y el otro de bonos. "
+        "Comprueba que has elegido el ETF correcto."
+    ),
+}
+
+
+def format_holdings_file_error(error: HoldingsFileError, detail: str | None = None) -> str:
+    return HOLDINGS_FILE_MESSAGES[error].format(detail=detail or "formato inesperado")

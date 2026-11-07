@@ -3,7 +3,7 @@
 The SEC publishes every US fund's monthly portfolio report about 60 days after month end.
 Information on sec.gov "is considered public information and may be copied or further
 distributed by users of the web site without the SEC's permission" (citing the SEC as source),
-which is why the public version of the app can show it (see docs/FUENTES_Y_LICENCIAS.md).
+which is why the app's SEC mode can show it (see docs/FUENTES_Y_LICENCIAS.md).
 
 What one filing (primary_doc.xml) gives, per holding: issuer name, LEI, ISIN and ticker (when
 reported), country (`invCountry`, the issuer's country), currency, value in USD, % of net assets

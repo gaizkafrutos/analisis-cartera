@@ -155,8 +155,8 @@ el contenido de sus webs. Decisión:
   de la SEC (información pública redistribuible, citando a la SEC); sin sector ni precios
   diarios, y no son UCITS.
 
-### Actualización (7-nov-2026): versión pública con datos reales de la SEC
-El autor quiere datos reales en la web pública. Se aprueba aproximar cada ETF UCITS con la
+### Actualización (7-nov-2026): modo SEC con datos reales públicos
+El autor quiere datos reales que se puedan mostrar. Se aprueba aproximar cada ETF UCITS con la
 composición del ETF de EE. UU. que replica el mismo índice, tomada del formulario N-PORT:
 - **Condiciones de la SEC** (sec.gov, aviso de privacidad y difusión): la información de su web
   "se considera pública y puede copiarse o redistribuirse sin permiso de la SEC"; pide citarla
@@ -168,6 +168,8 @@ composición del ETF de EE. UU. que replica el mismo índice, tomada del formula
 - **Qué sigue sin mostrarse en público:** ningún dato de las posiciones de iShares ni de otras
   gestoras europeas. Las comisiones (TER) de los 15 ETFs son las ya transcritas de sus
   documentos en `data/reference/`, con el aviso de procedencia del README.
+- **Dónde se usa** (decisión del autor al cerrar la v1, 7-nov-2026): la URL pública sigue
+  sirviendo la demo sintética; el modo SEC (`app/public.py`) se ejecuta en local.
 
 ## Fuentes consultadas (5-nov-2026)
 - Yahoo, Términos de servicio: https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html y

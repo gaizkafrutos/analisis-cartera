@@ -72,9 +72,16 @@ st.set_page_config(page_title="Radiografía de cartera", page_icon="🩻", layou
 # --- the sheet ---------------------------------------------------------------------------------
 
 
+def source() -> service.Dataset:
+    """Data of this session: the one picked in the selector, else the app's default."""
+    options = service.selectable_datasets()
+    chosen = st.session_state.get("data_source")
+    return next((d for d in options if d.key == chosen), options[0])
+
+
 def labels() -> texts.DatasetTexts:
-    """Texts about the data in use (real iShares + ECB, or the synthetic demo)."""
-    return texts.DATASET_TEXTS[service.dataset().key]
+    """Texts about the data in use (local, the user's files, SEC or the synthetic demo)."""
+    return texts.DATASET_TEXTS[source().key]
 
 
 def contour_svg(width: int = 560, height: int = 280, rings: int = 12) -> str:
@@ -131,11 +138,7 @@ def masthead() -> None:
         f'.sheet-head::before {{ background-image: url("data:image/svg+xml,{contours}"); }}'
     )
     st.html(f"<style>{css}\n{contour_rule}</style>")
-    stamp = (
-        f'<p class="demo-stamp">{html.escape(texts.DEMO_STAMP)}</p>'
-        if service.dataset().is_demo
-        else ""
-    )
+    stamp = f'<p class="demo-stamp">{html.escape(texts.DEMO_STAMP)}</p>' if source().is_demo else ""
     st.html(
         f"""<header class="sheet-head">
         <div class="title"><h1>Radiografía<br>de cartera</h1>
@@ -198,8 +201,23 @@ def chart_layout(figure: go.Figure, height: int, **layout) -> go.Figure:
 # --- input ------------------------------------------------------------------------------------
 
 
+def choose_data() -> service.Dataset:
+    options = service.selectable_datasets()
+    st.radio(
+        texts.DATA_CHOICE_LABEL,
+        [d.key for d in options],
+        format_func=lambda key: texts.DATASET_TEXTS[key].choice,
+        horizontal=True,
+        key="data_source",
+        help=texts.DATA_CHOICE_HELP,
+    )
+    return source()
+
+
 def read_input() -> PortfolioInputResult | None:
     st.header("1. Tu cartera")
+    data = choose_data()
+    universe = service.get_universe(data)
     mode = st.radio(
         "¿Cómo quieres introducir tu cartera?",
         [MODE_EXAMPLE, MODE_CSV, MODE_FORM],
@@ -207,20 +225,22 @@ def read_input() -> PortfolioInputResult | None:
         key="mode",
     )
     st.caption(im.AMOUNT_FIELD_HELP)
-    if service.dataset().is_demo and mode != MODE_EXAMPLE:
+    if data.is_demo and mode != MODE_EXAMPLE:
         st.caption(texts.DEMO_INPUT_HINT)
 
     if mode == MODE_EXAMPLE:
-        titles = {example.title: example for example in service.examples()}
+        titles = {example.title: example for example in service.examples(data)}
         choice = st.selectbox("Cartera de ejemplo", list(titles), key="example")
         example = titles[choice]
         st.caption(example.description)
-        return service.read_portfolio_csv(service.example_portfolio_csv(example.key))
+        return service.read_portfolio_csv(
+            service.example_portfolio_csv(example.key, data), universe
+        )
 
     if mode == MODE_CSV:
         st.caption(im.CSV_FORMAT_HELP)
         uploaded = st.file_uploader("Fichero CSV", type=["csv", "txt"])
-        return service.read_portfolio_csv(uploaded.getvalue()) if uploaded else None
+        return service.read_portfolio_csv(uploaded.getvalue(), universe) if uploaded else None
 
     with st.form("portfolio_form"):
         edited = st.data_editor(
@@ -247,7 +267,68 @@ def read_input() -> PortfolioInputResult | None:
                 if str(row.identificador or "").strip() or pd.notna(row.importe)
             ]
     rows = st.session_state.get("form_rows")
-    return service.read_portfolio_rows(rows) if rows is not None else None
+    return service.read_portfolio_rows(rows, universe) if rows is not None else None
+
+
+def _keep_uploaded_files() -> None:
+    """Copy the uploaded files' bytes to the session (memory only), so a rerun keeps them."""
+    files = st.session_state.get("holdings_files") or []
+    st.session_state["holdings_uploads"] = [(f.name, f.getvalue()) for f in files]
+
+
+def holdings_files(portfolio) -> service.UploadedData:
+    """The user's own holdings files: read each, let the user confirm its ETF, report problems.
+
+    Nothing is written to disk: the files stay in this session's memory."""
+    st.subheader(texts.UPLOAD_TITLE)
+    st.caption(texts.UPLOAD_HELP)
+    st.file_uploader(
+        "Ficheros de posiciones (CSV de iShares)",
+        type=["csv", "xls", "xlsx"],
+        accept_multiple_files=True,
+        key="holdings_files",
+        on_change=_keep_uploaded_files,
+    )
+    universe = service.get_universe(source())
+    funds = sorted(universe.funds.values(), key=lambda f: f.name)
+    names = {f.isin: f"{short_fund_name(f.name)} · {f.isin}" for f in funds}
+    assigned: dict[str, object] = {}
+    for i, (filename, content) in enumerate(st.session_state.get("holdings_uploads", [])):
+        upload = service.read_holdings_file(filename, content, universe)
+        if not upload.ok:
+            message = im.format_holdings_file_error(upload.error, upload.detail)
+            st.error(f"**{filename}**: {message}")
+            continue
+        read = texts.UPLOAD_READ.format(
+            lines=format_number(len(upload.holdings), 0), date=format_date(upload.as_of)
+        )
+        options = list(names)
+        isin = st.selectbox(
+            f"**{filename}** ({read}). {texts.UPLOAD_FUND_LABEL}",
+            options,
+            index=options.index(upload.suggested_isin) if upload.suggested_isin else None,
+            format_func=names.get,
+            placeholder="Elige el ETF",
+            key=f"upload_fund_{i}_{filename}",
+        )
+        if isin is not None:
+            if isin in assigned:
+                st.warning(texts.UPLOAD_DUPLICATE.format(fund=names[isin]))
+            assigned[isin] = upload
+    uploaded = service.snapshot_from_uploads(assigned, universe)
+    for isin, problem in uploaded.problems:
+        st.warning(f"**{names.get(isin, isin)}**: {im.UPLOAD_PROBLEM_MESSAGES[problem]}")
+    if not st.session_state.get("holdings_uploads"):
+        st.info(texts.UPLOAD_NO_FILES)
+    elif portfolio is not None:
+        missing = service.missing_holdings(portfolio, uploaded, universe)
+        if missing:
+            st.caption(
+                texts.UPLOAD_MISSING.format(
+                    funds=", ".join(short_fund_name(universe.funds[i].name) for i in missing)
+                )
+            )
+    return uploaded
 
 
 def show_input_problems(result: PortfolioInputResult) -> bool:
@@ -735,8 +816,15 @@ def show_details(report: service.AnalysisReport) -> None:
 def main() -> None:
     masthead()
     result = read_input()
-    if result is not None and show_input_problems(result):
-        report = service.analyze(result.portfolio)
+    ready = result is not None and show_input_problems(result)
+    data = source()
+    if data.key is service.DatasetKey.UPLOAD:
+        uploaded = holdings_files(result.portfolio if ready else None)
+        if ready:
+            report = service.analyze(result.portfolio, snapshot=uploaded.snapshot, source=data)
+    elif ready:
+        report = service.analyze(result.portfolio, source=data)
+    if ready:
         show_summary(report)
         show_details(report)
 

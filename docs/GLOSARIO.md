@@ -205,7 +205,7 @@ invierte en EE. UU.
 por tanto, tiene casi las mismas empresas con casi los mismos pesos.
 
 **Cómo se usa aquí:** los ETFs de EE. UU. publican su composición completa en la SEC, y esos
-datos se pueden mostrar en público. La versión pública de la app toma la composición del gemelo
+datos se pueden mostrar en público. El modo SEC de la app toma la composición del gemelo
 estadounidense (por ejemplo, IVV para un S&P 500 UCITS) y la usa para tu ETF, diciéndolo.
 
 **Ejemplo real:** con el S&P 500, las 10 mayores empresas pesan un 39,2 % con los datos de

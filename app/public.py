@@ -1,9 +1,8 @@
-"""Public version: the app on real data that can be shown in public (data/public/).
+"""SEC mode: the app on real, public data that may be redistributed (data/public/).
 
 Each UCITS ETF's composition is that of the US ETF tracking the same index, from SEC Form N-PORT
-(public data, see docs/FUENTES_Y_LICENCIAS.md). Entry point for the public deployment
-(Streamlit Community Cloud, main file `app/public.py`, dependencies from requirements.txt).
-Locally:
+(public data, see docs/FUENTES_Y_LICENCIAS.md). The public URL serves the synthetic demo
+(`app/demo.py`); this mode runs locally:
 
     .venv\\Scripts\\streamlit run app\\public.py
 """

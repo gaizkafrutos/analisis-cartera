@@ -99,8 +99,13 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
   único sitio en `reporting/` y se reutilizan en UI y documentación.
 - El acceso a datos va a través de snapshots normalizados (`data/snapshots.py`): cada fuente es
   un script de `scripts/` que escribe ese formato, y el motor solo lee snapshots. Así se cambia
-  de fuente según lo que permitan las licencias. Las interfaces `PriceSource` y
-  `HoldingsSource` no existen todavía: crearlas cuando haya una segunda fuente real.
+  de fuente según lo que permitan las licencias. `HoldingsSource` (`data/sources/
+  holdings_source.py`) es la interfaz de los ficheros de posiciones: un lector por gestora,
+  registrados en `data/sources/registry.py`, que convierten su fichero a las columnas comunes.
+  `PriceSource` no existe todavía: crearla cuando haya una segunda fuente de precios.
+- El universo se lee de `data/reference/universe.csv` y `listings.csv` (iShares, generados por
+  `scripts/build_universe.py`) más `universe_manual.csv` y `listings_manual.csv` (otras
+  gestoras, transcritos a mano de su ficha con URL y fecha).
 - Qué datos usa el motor lo decide `data/datasets.py`: rutas, universo, ejemplos e índice de
   referencia de `real`, `demo`, `public` (modo SEC) y `upload` (ficheros del usuario, en
   memoria). Por defecto, `RADIOGRAFIA_DATA` si existe; si no, `real` con snapshot local y `demo`
@@ -134,6 +139,9 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
   dentro de la tolerancia documentada, **se informa**; no se amplía la tolerancia para que pase.
 - ETFs de réplica sintética (swap): su fichero de posiciones es la cesta de colateral, no la
   exposición real. No usar ese fichero para look-through; marcarlo como no cubierto.
+- **Xtrackers, Amundi y SPDR (y cualquier gestora nueva): solo subida manual** del fichero que
+  descarga el usuario para su uso personal. Nunca descarga automática desde la app ni desde
+  scripts mientras sus términos o su robots.txt no lo permitan (`docs/FUENTES_Y_LICENCIAS.md`).
 
 ## Qué va al repositorio
 - **Sí**: código, scripts de ingesta, `data/reference/universe.csv` (metadatos transcritos con
@@ -235,7 +243,7 @@ y cada usuario descarga los suyos. Nunca servir datos de iShares en público.
 | Diseño visual | Hoja de mapa topográfico (`DESIGN.md`): papel claro, siena = tu cartera, azul = mercado mundial, rojo solo para problemas, rayado = sin datos; fuente Barlow autoalojada (OFL), sin peticiones externas | tomada sin el autor (6-nov-2026), revisable |
 | Productos | Solo ETFs UCITS en el MVP; fondos indexados fuera (indicarlo en README) | tomada |
 | Gestoras | iShares primero; Vanguard solo si publica posiciones UCITS descargables | tomada |
-| Universo | ~15 ETFs para el flujo completo; ampliar a 50-100 después | tomada |
+| Universo | 15 ETFs de iShares + 1 de Xtrackers, Amundi y SPDR (18); ampliar a 50-100 después | tomada |
 | Renta fija | Clasificación por tipo de activo; look-through solo renta variable; resto "no cubierto" con % | tomada |
 | Índice de referencia | MSCI ACWI vía ETF que lo replica en EUR (MSCI World como alternativa) | tomada |
 | Resumen | Plantillas deterministas a partir de resultados calculados; solo frases con dato disponible; comparación solo con el MSCI ACWI | tomada |
@@ -256,7 +264,9 @@ y cada usuario descarga los suyos. Nunca servir datos de iShares en público.
 | Cifras de iShares en README y docs | Se mantienen como ejemplos puntuales, con aviso de procedencia y fecha en cada documento; nada de tablas completas de posiciones | tomada (6-nov-2026) |
 | Repositorio | Público desde el 7-nov-2026 (MIT); ramas fusionadas borradas | tomada |
 | Modo SEC | Composición del ETF de EE. UU. del mismo índice (SEC N-PORT), solo índices idénticos; aviso, gemelo y fecha en pantalla; sector no disponible; solo en local (la URL pública es la demo) | tomada (7-nov-2026) |
-| Sube tu fichero | CSV de posiciones de iShares, leído en memoria; ETF propuesto por el ticker del nombre y confirmado por el usuario; solo ETFs del universo; el Excel no (no trae país); sin riesgo (no hay precios) | tomada (7-nov-2026) |
+| Sube tu fichero | Fichero de posiciones de iShares (CSV), Xtrackers, Amundi o SPDR (Excel), leído en memoria; ETF propuesto por el nombre o la cabecera y confirmado por el usuario; solo ETFs del universo; el Excel de iShares no (no trae país); sin riesgo (no hay precios) | tomada (7-nov-2026) |
+| Misma empresa entre gestoras | Nombre normalizado, mismo ISIN, prefijo único y desacuerdo de país (`analytics/company_names.py`); con una sola gestora, cálculo sin cambios; acierto medido en `docs/VALIDACION.md` | tomada (7-nov-2026) |
+| Otras gestoras | Xtrackers, Amundi y SPDR por subida manual; Vanguard, Invesco y CNMV "no cubierto" (motivos en `docs/FUENTES_Y_LICENCIAS.md`) | tomada (7-nov-2026) |
 | Modo por defecto | `RADIOGRAFIA_DATA` si existe; si no, datos reales con snapshot local y demo sin él | tomada (7-nov-2026) |
 | Demo pública | 8 fondos ficticios (`ZZDEMO…`), sello "Demo · datos ficticios" y aviso en cada sección; mismas carteras de ejemplo que el modo real | tomada (7-nov-2026) |
 | Entrada: ISIN fuera del universo | ISIN válido pero desconocido no es error: "no cubierto" con su % de cartera | tomada |

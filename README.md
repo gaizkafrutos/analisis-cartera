@@ -14,8 +14,9 @@ cuánto pagas y cuánto se ha movido.
 *Demo con datos inventados, cartera de ejemplo "Muy concentrada". Ni las capturas ni el GIF
 muestran datos reales.*
 
-**Pruébala:** hay una demo pública con fondos, empresas y precios ficticios (ver
-[Datos y licencias](#datos-y-licencias)). Con ETFs reales, la app se ejecuta en local.
+**Pruébala: [radiografia-cartera.streamlit.app](https://radiografia-cartera.streamlit.app)**, una demo con fondos, empresas y precios
+ficticios (ver [Datos y licencias](#datos-y-licencias)). Con ETFs reales, la app se ejecuta en
+local.
 
 ## El problema
 
@@ -151,7 +152,7 @@ recorren todas las secciones de principio a fin). El segundo, la validación con
 
 Por eso hay dos modos:
 
-- **Demo pública** (`app/demo.py`): 8 fondos ficticios con unas 1.200 empresas inventadas,
+- **Demo pública** ([radiografia-cartera.streamlit.app](https://radiografia-cartera.streamlit.app), `app/demo.py`): 8 fondos ficticios con unas 1.200 empresas inventadas,
   generados por [scripts/build_demo.py](scripts/build_demo.py) con una semilla fija y guardados
   en `data/demo/`. No usa ningún dato de terceros, y cada pantalla lo dice. Sirve para ver cómo
   funciona la herramienta, no para sacar conclusiones: las cifras no son reales.

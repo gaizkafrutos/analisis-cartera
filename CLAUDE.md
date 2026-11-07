@@ -29,7 +29,8 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 
 ## Orden de construcción
 Estado: pasos 0 a 13 hechos (MVP completo y auditado, ver AUDITORIA.md). Repositorio público;
-despliegue público solo como demo con datos sintéticos (`app/demo.py`); con datos reales, solo local.
+despliegue público solo como demo con datos sintéticos (`app/demo.py`, https://radiografia-cartera.streamlit.app); con datos
+reales, solo local.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:

@@ -1,4 +1,4 @@
-"""The user's own holdings files ("Tus ficheros de iShares"), end to end with a synthetic file.
+"""The user's own holdings files ("Tus ficheros de la gestora"), end to end, synthetic files.
 
 The file has the iShares CSV format but invented companies (tests/fixtures/SWDA_holdings.csv),
 so this runs in CI. The validation test at the end checks, with the real files of a local
@@ -68,6 +68,30 @@ def test_unreadable_files_are_ignored_not_guessed():
     bad = service.read_holdings_file("notas.csv", b"hola")
     uploaded = service.snapshot_from_uploads({WORLD: bad})
     assert uploaded.snapshot is None and uploaded.problems == ()
+
+
+def test_funds_of_different_issuers_share_their_companies():
+    """iShares, Xtrackers and Amundi files of the same (synthetic) companies, named and placed a
+    little differently by each issuer: the overlap and the company count see them as one."""
+    from tests.xlsx_builder import amundi_file, xtrackers_file
+
+    xtrackers, amundi = "IE00BJ0KDQ92", "IE000BI8OT95"
+    files = {
+        WORLD: _upload(),
+        xtrackers: service.read_holdings_file("Constituent_IE00BJ0KDQ92.xlsx", xtrackers_file()),
+        amundi: service.read_holdings_file("Cartera del fondo_x.xlsx", amundi_file()),
+    }
+    assert files[xtrackers].suggested_isin == xtrackers
+    assert files[amundi].suggested_isin == amundi
+    uploaded = service.snapshot_from_uploads(files)
+    assert set(uploaded.used) == {WORLD, xtrackers, amundi}
+    csv = f"identificador;importe_eur\n{WORLD};5000\n{xtrackers};3000\n{amundi};2000\n"
+    portfolio = service.read_portfolio_csv(csv, service.get_universe(UPLOAD)).portfolio
+    lt = service.analyze(portfolio, snapshot=uploaded.snapshot, source=UPLOAD).lookthrough
+    assert lt.companies_count == 5
+    assert all(pair.overlap == pytest.approx(0.95, abs=0.01) for pair in lt.overlaps)
+    countries = {item.label for item in lt.geography.items}
+    assert "Netherlands" not in countries  # Amundi's country for Epsilon gives way to iShares'
 
 
 @pytest.fixture

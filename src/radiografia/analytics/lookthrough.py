@@ -41,6 +41,7 @@ from enum import StrEnum
 import pandas as pd
 from pydantic import BaseModel, ConfigDict
 
+from radiografia.analytics.company_names import PREFERRED_ISSUER, company_keys
 from radiografia.analytics.fund_breakdown import CASH_LABEL, holding_weights, is_cash_like
 from radiografia.domain.fund import AssetClass, Fund, Replication
 from radiografia.domain.metrics import (
@@ -272,6 +273,7 @@ def compute_lookthrough(
         if position.isin in available:
             lines = holdings[holdings["isin"] == position.isin].copy()
             lines["w"] = holding_weights(lines) * position.weight
+            lines["issuer"] = fund.issuer
             dates.append(holdings_as_of[position.isin])
             if position.isin in proxies:
                 used_proxies.append(proxies[position.isin])
@@ -293,7 +295,8 @@ def compute_lookthrough(
     data_as_of = min(dates) if dates else None
 
     if equity_lines:
-        eq = pd.concat(equity_lines, ignore_index=True)
+        eq = _same_company_across_issuers(pd.concat(equity_lines, ignore_index=True))
+        equity_lines = [lines for _, lines in eq.groupby("isin", sort=False)]
         cash = is_cash_like(eq)
         country = eq["location"].where(~cash, CASH_LABEL)
         sector = eq["sector"].where(~cash, CASH_LABEL)
@@ -366,6 +369,28 @@ def compute_lookthrough(
         uncovered=tuple(uncovered),
         proxies=tuple(dict.fromkeys(used_proxies)),
     )
+
+
+def _same_company_across_issuers(eq: pd.DataFrame) -> pd.DataFrame:
+    """When the portfolio mixes issuers, give each company one name and one country in every
+    fund (rules in analytics/company_names.py); with a single issuer, lines are unchanged."""
+    if eq["issuer"].nunique() <= 1:  # noqa: PD101
+        return eq
+    stocks = ~is_cash_like(eq)
+    lines = eq[stocks]
+    keys = company_keys(lines)
+    preferred = (lines["issuer"] == PREFERRED_ISSUER).astype(int)
+    representative = (
+        lines.assign(key=keys, preferred=preferred)
+        .sort_values(["preferred", "w"], ascending=False)
+        .drop_duplicates("key")
+        .set_index("key")
+    )
+    eq = eq.copy()
+    eq.loc[stocks, "name"] = keys.map(representative["name"]).to_numpy()
+    country = keys.str.rsplit("|", n=1).str[1]
+    eq.loc[stocks, "location"] = country.where(country != "-", None).to_numpy()
+    return eq
 
 
 def _concentration(

@@ -283,7 +283,7 @@ def holdings_files(portfolio) -> service.UploadedData:
     st.subheader(texts.UPLOAD_TITLE)
     st.caption(texts.UPLOAD_HELP)
     st.file_uploader(
-        "Ficheros de posiciones (CSV de iShares)",
+        "Ficheros de posiciones (iShares, Xtrackers, Amundi o SPDR)",
         type=["csv", "xls", "xlsx"],
         accept_multiple_files=True,
         key="holdings_files",
@@ -296,7 +296,7 @@ def holdings_files(portfolio) -> service.UploadedData:
     for i, (filename, content) in enumerate(st.session_state.get("holdings_uploads", [])):
         upload = service.read_holdings_file(filename, content, universe)
         if not upload.ok:
-            message = im.format_holdings_file_error(upload.error, upload.detail)
+            message = im.format_holdings_file_error(upload.error, upload.detail, upload.issuer)
             st.error(f"**{filename}**: {message}")
             continue
         read = texts.UPLOAD_READ.format(

@@ -116,4 +116,29 @@ llamarlo aproximación, así que esos ETFs salen como "no cubierto" en el modo S
 | MSCI Japan IMI | EWJ (MSCI Japan) | 23,5 % / 30,1 % | 104 / 67 | 928 / 169 |
 | S&P 500 Capped 35/20 IT | XLK (Technology Select Sector) | 76,7 % / 64,4 % | 8 / 16 | 76 / 74 |
 
+## Otras gestoras: el mismo índice en dos gestoras (fase 2 de la v1)
+Test: `tests/validation/test_other_issuers_samples.py`, con los ficheros descargados a mano el
+7-nov-2026 (`data/raw/muestras/`, fuera de git) y el snapshot de iShares a 4-nov-2026. Cada
+fichero se compara con el ETF de iShares que replica el mismo índice: si la app reconoce bien las
+empresas, el solapamiento debe acercarse al 100 % (no llega por diferencias de muestreo, liquidez
+y fechas).
+
+| Fichero | Comparado con | Peso reconocido como empresa de iShares | Solapamiento en la app |
+|---|---|---|---|
+| Xtrackers MSCI World 1C | iShares Core MSCI World | 99,9 % | 97,3 % |
+| Amundi Core MSCI World Acc | iShares Core MSCI World | 95,8 % | 94,6 % |
+| SPDR MSCI ACWI | iShares MSCI ACWI | 95,7 % | 92,0 % |
+
+- **Xtrackers** escribe los nombres casi como iShares; lo que falta son diferencias de país.
+- **Amundi** abrevia o cambia el orden en algunos nombres ("SCHWAB CHARLES", "TORONTO DOMINIO
+  BANK") y usa nombres anteriores ("GENERAL ELECTRIC" frente a "GE AEROSPACE"): unos 80 nombres,
+  un 4 % del peso, quedan sin emparejar.
+- **SPDR** frente a iShares ACWI: el ETF de iShares tiene un 2,5 % en otros ETFs de iShares
+  (India, Brasil, China A, Arabia Saudí) que no se pueden emparejar con acciones; el resto son
+  nombres distintos como en Amundi.
+- Umbrales del test (lo de hoy menos un margen): reconocido 99 %, 94 % y 94 %; solapamiento 95 %,
+  93 % y 90 %. Si un fichero nuevo queda por debajo, se informa; no se bajan los umbrales.
+- Países y sectores de los tres ficheros se traducen todos a etiquetas del motor (el test falla
+  si queda alguno en español).
+
 ## Pendiente

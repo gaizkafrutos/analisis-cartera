@@ -19,6 +19,8 @@ from radiografia.domain.universe import UniverseIndex
 REFERENCE_DIR = Path(__file__).resolve().parents[3] / "data" / "reference"
 FUNDS_FILE = "universe.csv"
 LISTINGS_FILE = "listings.csv"
+MANUAL_FUNDS_FILE = "universe_manual.csv"
+MANUAL_LISTINGS_FILE = "listings_manual.csv"
 
 FUND_COLUMNS = list(Fund.model_fields)
 LISTING_COLUMNS = list(Listing.model_fields)
@@ -74,13 +76,26 @@ def _read_rows(path: Path) -> list[dict[str, str | None]]:
         ]
 
 
+def _rows(directory: Path, filename: str, manual: str) -> list[dict[str, str | None]]:
+    rows = _read_rows(directory / filename)
+    if (directory / manual).exists():
+        rows += _read_rows(directory / manual)
+    return rows
+
+
 def load_universe(directory: Path = REFERENCE_DIR) -> Universe:
-    """Load and validate the universe (pydantic validates ISINs, TER range and enums)."""
-    funds = [Fund.model_validate(row) for row in _read_rows(directory / FUNDS_FILE)]
+    """Load and validate the universe (pydantic validates ISINs, TER range and enums).
+
+    universe.csv / listings.csv are generated from iShares (scripts/build_universe.py);
+    universe_manual.csv / listings_manual.csv hold other issuers' ETFs, transcribed by hand
+    from their product pages, with `source_url` and `retrieved_on` per fund."""
+    funds = [Fund.model_validate(row) for row in _rows(directory, FUNDS_FILE, MANUAL_FUNDS_FILE)]
     by_isin = {fund.isin: fund for fund in funds}
     if len(by_isin) != len(funds):
-        raise ValueError("duplicate ISIN in universe.csv")
-    listings = tuple(Listing.model_validate(row) for row in _read_rows(directory / LISTINGS_FILE))
+        raise ValueError("duplicate ISIN in the universe files")
+    listings = tuple(
+        Listing.model_validate(row) for row in _rows(directory, LISTINGS_FILE, MANUAL_LISTINGS_FILE)
+    )
     orphan = {li.isin for li in listings} - set(by_isin)
     if orphan:
         raise ValueError(f"listings for ISINs not in universe.csv: {sorted(orphan)}")

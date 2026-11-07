@@ -28,9 +28,11 @@ régimen de traspasos) quedan fuera; el README debe decirlo con claridad.
 - No avanzar al siguiente paso del plan sin acuerdo del autor.
 
 ## Orden de construcción
-Estado: pasos 0 a 13 hechos (MVP completo y auditado, ver AUDITORIA.md). Repositorio público;
-despliegue público solo como demo con datos sintéticos (`app/demo.py`, https://radiografia-cartera.streamlit.app); con datos
-reales, solo local.
+Estado: **v1 cerrada el 7-nov-2026** (pasos 0 a 13 y fases de cierre 1–4: demo por defecto, subida
+de ficheros, otras gestoras, mejoras y publicación; ver AUDITORIA.md, sección 7). Repositorio
+público; la web pública (https://radiografia-cartera.streamlit.app, `app/demo.py`) sirve solo la
+demo sintética y la subida de tus ficheros; con datos reales, solo local. Cualquier trabajo nuevo
+es posterior a la v1 y se acuerda antes con el autor.
 
 0. **Licencias y disponibilidad de fuentes** (antes de cualquier commit con datos reales):
    - Revisar términos de Yahoo/yfinance, iShares (BlackRock), Vanguard, BCE y Kenneth French:

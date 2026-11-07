@@ -25,3 +25,8 @@ Thumbs.db
 
 # Local preview configuration
 .claude/launch.json
+
+# Local environment variables (e.g. SEC_USER_AGENT) and drafts for publishing (not in git)
+.env
+.env.*
+publicacion/

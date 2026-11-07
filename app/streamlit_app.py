@@ -870,8 +870,34 @@ def show_details(report: service.AnalysisReport) -> None:
     st.caption(texts.DATASET_TEXTS[report.dataset].disclaimer)
 
 
+def open_about() -> None:
+    st.session_state["page"] = "about"
+
+
+def close_about() -> None:
+    st.session_state["page"] = "analysis"
+
+
+def about_page() -> None:
+    st.button(f":material/arrow_back: {texts.BACK_BUTTON}", key="about_close", on_click=close_about)
+    st.markdown(texts.ABOUT_DATA)
+    st.caption(f"Datos de esta sesión: {labels().sources}.")
+    st.button(f":material/arrow_back: {texts.BACK_BUTTON}", key="about_back", on_click=close_about)
+
+
+def keep_choices() -> None:
+    """Widgets that are not drawn lose their value; keep the user's choices across pages."""
+    for key in ("data_source", "mode", "example"):
+        if key in st.session_state:
+            st.session_state[key] = st.session_state[key]
+
+
 def main() -> None:
+    keep_choices()
     masthead()
+    if st.session_state.get("page") == "about":
+        about_page()
+        return
     result = read_input()
     ready = result is not None and show_input_problems(result)
     data = source()
@@ -886,6 +912,7 @@ def main() -> None:
         show_details(report)
 
     with st.container(key="footer"):
+        st.button(f":material/info: {texts.ABOUT_BUTTON}", key="about_open", on_click=open_about)
         st.caption(texts.PRIVACY_NOTE)
         st.caption(labels().credits)
 

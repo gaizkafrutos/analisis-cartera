@@ -201,6 +201,18 @@ navegador). Citas breves y literales de cada texto; no es asesoramiento jurídic
   (`data/reference/universe_manual.csv`, con la URL y la fecha de cada uno). Su moneda base no
   aparece en esas fichas y se deja vacía.
 
+## Proveedores de datos de pago (revisión del 7-nov-2026)
+No se usan en el proyecto (CLAUDE.md los excluye); se revisaron solo para explicar en el README
+por qué no hay una web pública con datos reales.
+- **EODHD** ([uso personal](https://eodhd.com/help/personal-use),
+  [uso comercial](https://eodhd.com/financial-apis/commercial-vs-personal-license-use)): el plan
+  personal es para uso privado; mostrar los datos a otras personas (una web pública, una app,
+  gráficos publicados) requiere licencia comercial.
+- **Financial Modeling Prep** ([términos](https://site.financialmodelingprep.com/terms-of-service)):
+  licencia para uso personal y no comercial; mostrar o publicar sus datos requiere su aprobación
+  previa por escrito.
+- Otros proveedores no se revisaron; la frase del README se limita a estos dos.
+
 ## Fuentes consultadas (5-nov-2026)
 - Yahoo, Términos de servicio: https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html y
   https://legal.yahoo.com/ie/en/yahoo/terms/otos/index.html

@@ -13,11 +13,11 @@ resultados de la validación, en `docs/VALIDACION.md`.
 > desde la fecha común de cada una); y la CI tiene **233 tests** (aquí, 219). La tabla con las
 > dos referencias está en `docs/GLOSARIO.md`, "Caída en episodios fijos".
 >
-> **Nota posterior (7-nov-2026).** Al cerrar la v1: la CI tiene **323 tests** y la validación
+> **Nota posterior (7-nov-2026).** Al cerrar la v1: la CI tiene **324 tests** y la validación
 > **71** (aquí, 219 y 67); el universo tiene **18 ETFs** (los 15 de iShares más uno de Xtrackers,
 > Amundi y SPDR, que se analizan subiendo su fichero de posiciones); la app avisa cuando las
 > posiciones tienen más de un mes y compara lado a lado la cartera con el mercado mundial (puntos
-> 5.6 y 4 de abajo). La actualización completa de esta auditoría está pendiente (fase 4).
+> 5.6 y 4 de abajo). El estado de cada punto al cerrar la v1 está en la sección 7.
 >
 > Las cifras se reproducen como ejemplos puntuales para explicar la herramienta; los datos
 > de iShares pertenecen a su titular.
@@ -219,3 +219,58 @@ no se puede contrastar, porque es frente a su propio índice y no tenemos esa se
    empresa común.
 3. Resolver el permiso de datos o elegir otra fuente.
 4. Solo después, las fases 2 y 4.
+
+---
+
+## 7. Estado al cerrar la v1 (7-nov-2026)
+
+Las secciones 1 a 6 son la auditoría tal como se escribió. Esto es lo que ha cambiado desde
+entonces y lo que sigue igual.
+
+**Orden recomendado (sección 6):**
+
+| Recomendación | Estado |
+|---|---|
+| 1. Rebajar alpha, VaR y la rentabilidad simulada; caídas en episodios fijos | Hecho (6-nov) |
+| 2. Otras gestoras con una clave de empresa común | **En parte.** Xtrackers, Amundi y SPDR se leen subiendo su fichero (sus condiciones no permiten descargarlo de forma automática). La misma empresa se reconoce entre gestoras por nombre normalizado, ISIN, prefijo y país: solapamiento del 97,3 %, 94,6 % y 92,0 % entre ETFs del mismo índice. Vanguard e Invesco, no |
+| 3. Resolver el permiso de datos u otra fuente | **Resuelto por decisión, no por permiso.** No se pide autorización. La web pública es una demo sintética con la opción de subir tus ficheros; los datos reales, en local; un modo SEC aproxima cada ETF con su gemelo de EE. UU. del mismo índice |
+| 4. Fases 2 y 4 | Sin empezar, como estaba previsto |
+
+**Lo que echaría en falta un inversor (sección 5):**
+
+| Punto | Estado |
+|---|---|
+| 1. Sus propios fondos | En parte: 18 ETFs (15 de iShares y uno de Xtrackers, Amundi y SPDR); sin Vanguard ni fondos indexados |
+| 2. Importar el extracto del bróker | No |
+| 3. Caídas en crisis comparables | Hecho para 2020 y 2022 con los propios ETFs; 2000-02 y 2008, no |
+| 4. Reparto frente a su objetivo | No |
+| 5. Fiscalidad informativa | No |
+| 6. Datos frescos | Hecho: la cartela muestra la edad de las posiciones y avisa a partir de un mes |
+
+**Lo que haría distinto (sección 4)** también se movió: la comparación lado a lado con el
+mercado mundial está en la pestaña Exposición, y "datos antes que métricas" se cumplió al final,
+no al principio: la fase de cierre fue casi entera sobre datos (demo, ficheros subidos, otras
+gestoras, SEC), no sobre métricas.
+
+**Problemas nuevos, encontrados al cerrar:**
+- **Reparto acciones/bonos:** sin el fichero de un ETF de acciones, una cartera 70/30 salía
+  75/25. Corregido: usa el tipo de activo de cada ETF del universo.
+- **Fechas:** el fichero de Xtrackers no trae fecha de posiciones (se usa la de descarga) y la
+  SEC publica con unos dos meses de retraso. Ambas cosas se dicen en pantalla.
+- **País:** cada fuente lo asigna a su manera (iShares, domicilio; SPDR, país de cotización; la
+  SEC, el del emisor). Entre gestoras se resuelve con el país de iShares; el error que queda está
+  medido.
+- **Riesgo con ficheros subidos:** no hay precios, así que esa pestaña queda sin datos en ese
+  modo. Es honesto, pero es la parte más visible que falta en la web pública.
+
+**Valoración al cerrar:**
+- **Útil hoy** para un inversor con ETFs de iShares, Xtrackers, Amundi o SPDR que quiere saber
+  qué tiene (países, divisas, empresas, solapamiento y costes), en la web pública subiendo sus
+  ficheros o en local con todo; para aprender, con el glosario y los desplegables; y como muestra
+  de trabajo: 324 tests sin red y 71 de validación contra las gestoras.
+- **No útil todavía** para la cartera típica con Vanguard o fondos indexados; para el riesgo en
+  la web pública; ni para nada que dependa de la fiscalidad.
+- **La conclusión de la sección 6 se confirma:** el límite principal no es técnico, es el dato.
+  El motor fue la parte previsible; decidir de dónde salen los datos y en qué condiciones se
+  pueden mostrar ocupó buena parte del proyecto y es lo que define qué puede ser público.
+

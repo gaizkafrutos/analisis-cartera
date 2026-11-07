@@ -108,6 +108,50 @@ VERSUS_NOTE = (
     "Mismo cálculo para tu cartera y para el mercado mundial de acciones. La cartera incluye sus "
     "bonos en la línea del dólar; el mercado mundial es solo acciones."
 )
+ABOUT_BUTTON = "Acerca de los datos"
+BACK_BUTTON = "Volver al análisis"
+REPOSITORY_URL = "https://github.com/gaizkafrutos/analisis-cartera"
+ABOUT_DATA = f"""
+## Por qué no hay una web pública con datos reales
+
+*Revisión de las condiciones de uso hecha el 5 y el 7 de noviembre de 2026. Es la lectura del
+autor de textos públicos, no asesoramiento jurídico.*
+
+Para saber qué contiene un ETF (países, divisas, empresas, solapamiento) hacen falta sus
+**posiciones**: la lista completa de lo que tiene el fondo. En esta revisión no se encontró una
+forma sencilla, oficial y conforme a las condiciones de uso de obtener las posiciones de ETFs y
+fondos europeos para **mostrarlas en una web pública**:
+
+- **Las gestoras** (iShares, Vanguard, Xtrackers, Amundi, SPDR, Invesco) publican sus ficheros
+  para uso personal y piden autorización para reproducir o mostrar sus datos. Algunas prohíben
+  además la descarga automática.
+- **Yahoo Finance** prohíbe el acceso automatizado y la redistribución de sus datos.
+- **Los proveedores de pago** revisados (EODHD, Financial Modeling Prep) limitan su plan estándar
+  al uso personal y exigen una licencia o un acuerdo para mostrar datos a terceros.
+- **Los reguladores** publican datos útiles, pero limitados: la **SEC** da la composición
+  completa de los fondos de EE. UU. (no de los UCITS europeos), y la **CNMV**, las carteras de los
+  fondos y SICAV españoles (no de los ETFs domiciliados en Irlanda o Luxemburgo).
+
+### Por eso la herramienta funciona así
+
+- **El motor está completo** y es el mismo en todos los casos.
+- **En local, con datos reales:** cada usuario descarga para su uso personal los datos de su
+  gestora con los scripts del proyecto.
+- **«Tus ficheros de la gestora»:** subes el fichero de posiciones que descargas de la ficha de
+  tu ETF (iShares, Xtrackers, Amundi o SPDR). Se lee en memoria y no se guarda.
+- **Demo pública con datos sintéticos:** fondos, empresas y precios inventados para ver cómo
+  funciona, sin ningún dato de terceros.
+- **Modo SEC, en local:** la composición de cada ETF se aproxima con la del ETF de EE. UU. que
+  replica el mismo índice, con el error medido.
+
+### Privacidad
+Tu cartera y tus ficheros no se guardan: se procesan en memoria mientras tienes la página
+abierta y no se envían a ningún servicio externo.
+
+Detalle de cada fuente, con las citas de sus condiciones, en
+[docs/FUENTES_Y_LICENCIAS.md]({REPOSITORY_URL}/blob/main/docs/FUENTES_Y_LICENCIAS.md); cómo se
+calcula cada cifra, en [docs/METODOLOGIA.md]({REPOSITORY_URL}/blob/main/docs/METODOLOGIA.md).
+"""
 UPLOAD_TITLE = "Ficheros de posiciones de tus ETFs"
 UPLOAD_HELP = (
     "Descarga de la ficha de cada ETF de tu cartera su fichero de posiciones completo y súbelo "
@@ -164,7 +208,8 @@ DATASET_TEXTS = {
         episode_labels={"2020": "2020 (caída ficticia)", "2022": "2022 (caída ficticia)"},
         choice="Demo con datos ficticios",
         choice_help="Fondos, empresas y precios inventados para ver cómo funciona la app. No "
-        "describen ningún producto real.",
+        "describen ningún producto real. Por qué la web no muestra datos reales: «Acerca de los "
+        "datos», al final de la página.",
     ),
     DatasetKey.PUBLIC: DatasetTexts(
         reference="Mercado mundial de acciones (MSCI ACWI, con la composición del ETF de EE. UU. "

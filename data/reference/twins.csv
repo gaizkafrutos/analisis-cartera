@@ -1,0 +1,11 @@
+ucits_isin,ucits_index,us_ticker,us_name,us_index,match,sec_cik,sec_series_id,sec_class_id,note
+IE00B4L5Y983,MSCI World,URTH,iShares MSCI World ETF,MSCI World,exact,930667,S000035395,C000108746,
+IE00B441G979,MSCI World (clase cubierta en EUR),URTH,iShares MSCI World ETF,MSCI World,exact,930667,S000035395,C000108746,La cobertura de divisa no cambia las empresas; la divisa sale de la regla de clases cubiertas.
+IE00B6R52259,MSCI ACWI,ACWI,iShares MSCI ACWI ETF,MSCI ACWI,exact,1100663,S000021461,C000061364,
+IE00B5BMR087,S&P 500,IVV,iShares Core S&P 500 ETF,S&P 500,exact,1100663,S000004310,C000012040,
+IE00B53SZB19,Nasdaq-100,QQQ,Invesco QQQ Trust,Nasdaq-100,exact,1067839,S000101292,C000271435,
+IE00BKM4GZ66,MSCI Emerging Markets IMI,IEMG,iShares Core MSCI Emerging Markets ETF,MSCI Emerging Markets IMI,exact,930667,S000038923,C000119708,
+IE00B53L3W79,EURO STOXX 50,FEZ,SPDR EURO STOXX 50 ETF,EURO STOXX 50,exact,1168164,S000006392,C000017550,
+IE00B4K48X80,MSCI Europe,IEUR,iShares Core MSCI Europe ETF,MSCI Europe IMI,similar,1100663,S000045102,C000140337,El gemelo incluye también empresas pequeñas (IMI): más empresas y algo menos de concentración.
+IE00B4L5YX21,MSCI Japan IMI,EWJ,iShares MSCI Japan ETF,MSCI Japan,similar,930667,S000004249,C000011953,El gemelo no incluye empresas pequeñas: menos empresas y algo más de concentración.
+IE00B3WJKG14,S&P 500 Capped 35/20 Information Technology,XLK,Technology Select Sector SPDR Fund,Technology Select Sector,similar,1064641,S000006415,C000017601,Mismas empresas tecnológicas del S&P 500 con otra regla de topes por empresa.

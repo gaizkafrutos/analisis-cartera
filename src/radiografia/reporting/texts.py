@@ -67,6 +67,15 @@ DEMO_NOTICE = (
     "local con los datos que cada usuario descarga (ver README)."
 )
 
+PUBLIC_NOTICE = (
+    "Versión pública: la composición de cada ETF se aproxima con la del ETF de EE. UU. que replica "
+    "el mismo índice (datos reales de la SEC, con unos meses de retraso). Para los datos exactos "
+    "de tu ETF, la app se ejecuta en local (ver README)."
+)
+TWINS_TITLE = "De dónde sale la composición de cada ETF"
+TWIN_EXACT = "mismo índice"
+TWIN_SIMILAR = "índice parecido"
+
 DATASET_TEXTS = {
     DatasetKey.REAL: DatasetTexts(
         reference="Mercado mundial de acciones (iShares MSCI ACWI)",
@@ -91,6 +100,25 @@ DATASET_TEXTS = {
         ),
         data_date_note="Datos ficticios con fecha {date}.",
         notice=DEMO_NOTICE,
+    ),
+    DatasetKey.PUBLIC: DatasetTexts(
+        reference="Mercado mundial de acciones (MSCI ACWI, con la composición del ETF de EE. UU. "
+        "que lo replica)",
+        reference_in_summary="el índice mundial MSCI ACWI",
+        reference_mark=(
+            "La marca azul es el mercado mundial de acciones (MSCI ACWI), abierto igual."
+        ),
+        sources=(
+            "Composición: SEC, formulario N-PORT de los ETFs de EE. UU. del mismo índice. "
+            "Comisiones: documentos de cada gestora."
+        ),
+        credits=(
+            "Datos: SEC (U.S. Securities and Exchange Commission), formulario N-PORT, para la "
+            "composición; comisiones de los documentos de cada gestora. Tipografía Barlow (SIL "
+            "Open Font License)."
+        ),
+        data_date_note="Composición publicada en la SEC con fecha {date}.",
+        notice=PUBLIC_NOTICE,
     ),
 }
 
@@ -239,6 +267,16 @@ WARNING_TEXTS: dict[str, str] = {
     lookthrough.WARNING_OVERLAP_IS_NOT_A_PROBLEM_BY_ITSELF: (
         "Que una empresa aparezca en varios ETFs no es un problema por sí mismo: lo que cuenta es "
         "cuánto pesa al final en tu cartera."
+    ),
+    lookthrough.WARNING_HOLDINGS_FROM_TWIN: (
+        "Aproximación: la composición de tus ETFs es la del ETF de EE. UU. que replica el mismo "
+        "índice (o uno parecido), publicada por la SEC con unos meses de retraso. Puede diferir en "
+        "unos puntos de la de tu ETF; en la pestaña Exposición se indica qué gemelo se usa en cada "
+        "caso."
+    ),
+    lookthrough.WARNING_SECTOR_NOT_PUBLISHED: (
+        "Parte de tus ETFs no tiene sector en la fuente de datos (la SEC no lo publica): el "
+        "desglose por sector solo incluye los que sí lo tienen."
     ),
 }
 

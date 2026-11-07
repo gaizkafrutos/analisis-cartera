@@ -15,7 +15,7 @@ from functools import lru_cache
 from pydantic import BaseModel, ConfigDict
 
 from radiografia.analytics.costs import CostsResult, compute_costs, tracking_differences
-from radiografia.analytics.lookthrough import LookThroughResult, compute_lookthrough
+from radiografia.analytics.lookthrough import LookThroughResult, ProxyNote, compute_lookthrough
 from radiografia.analytics.returns import ReturnsResult, compute_returns, fund_index_eur
 from radiografia.analytics.risk import RiskResult, compute_risk
 from radiografia.data.datasets import DATASETS, Dataset, DatasetKey, current_dataset
@@ -146,6 +146,27 @@ def read_portfolio_rows(
     return build_portfolio(rows, (universe or get_universe()).index())
 
 
+def proxy_notes(snapshot: Snapshot, universe: Universe) -> dict[str, ProxyNote]:
+    """Public dataset: which US twin ETF stands in for each UCITS ETF (empty otherwise)."""
+    if snapshot.proxies is None:
+        return {}
+    notes = {}
+    for row in snapshot.proxies.itertuples():
+        fund = universe.funds.get(row.isin)
+        notes[row.isin] = ProxyNote(
+            isin=row.isin,
+            fund_name=fund.name if fund else row.isin,
+            ucits_index=row.ucits_index,
+            us_ticker=row.us_ticker,
+            us_name=row.us_name,
+            us_index=row.us_index,
+            exact_index=row.match == "exact",
+            note=row.note if isinstance(row.note, str) and row.note else None,
+            holdings_as_of=row.report_date.date(),
+        )
+    return notes
+
+
 _LATEST = object()
 
 
@@ -160,11 +181,12 @@ def analyze(
     benchmark_isin = data.benchmark_isin
     universe = universe or get_universe()
     snapshot = get_snapshot() if snapshot is _LATEST else snapshot
-    holdings, as_of = None, {}
+    holdings, as_of, proxies = None, {}, {}
     navs = performance = distributions = fx = estr = None
     if snapshot is not None:
         holdings = snapshot.holdings
         as_of = {row.isin: row.holdings_as_of.date() for row in snapshot.manifest.itertuples()}
+        proxies = proxy_notes(snapshot, universe)
         navs, performance = snapshot.navs, snapshot.performance
         distributions, fx = snapshot.distributions, snapshot.fx
         if snapshot.estr is not None:
@@ -191,13 +213,15 @@ def analyze(
     costs = compute_costs(
         portfolio, universe.funds, tracking_differences(performance, universe.funds)
     )
-    lookthrough = compute_lookthrough(portfolio, universe.funds, holdings, as_of)
+    lookthrough = compute_lookthrough(portfolio, universe.funds, holdings, as_of, proxies)
     reference = None
     if holdings is not None and benchmark is not None:
         benchmark_portfolio = build_portfolio(
             [RawPosition(identifier=benchmark_isin, amount_eur=1.0)], universe.index()
         ).portfolio
-        reference = compute_lookthrough(benchmark_portfolio, universe.funds, holdings, as_of)
+        reference = compute_lookthrough(
+            benchmark_portfolio, universe.funds, holdings, as_of, proxies
+        )
     names = {isin: fund.name for isin, fund in universe.funds.items()}
     labels = DATASET_TEXTS[data.key]
     return AnalysisReport(

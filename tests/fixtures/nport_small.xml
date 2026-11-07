@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic N-PORT filing with the structure of a real one (values invented, for tests). -->
+<edgarSubmission xmlns="http://www.sec.gov/edgar/nport" xmlns:com="http://www.sec.gov/edgar/common">
+  <formData>
+    <genInfo>
+      <regName>Example Trust</regName>
+      <seriesName>Example World ETF</seriesName>
+      <seriesId>S000000001</seriesId>
+      <repPdEnd>2026-12-31</repPdEnd>
+      <repPdDate>2026-07-31</repPdDate>
+    </genInfo>
+    <fundInfo>
+      <netAssets>1000000.00</netAssets>
+      <returnInfo>
+        <monthlyTotReturns>
+          <monthlyTotReturn classId="C000000001" rtn1="4.80000000" rtn2="-0.45000000" rtn3="-0.36000000"/>
+        </monthlyTotReturns>
+      </returnInfo>
+    </fundInfo>
+    <invstOrSecs>
+      <invstOrSec>
+        <name>Alphabet, Inc.</name>
+        <lei>5493006MHB84DD0ZWV18</lei>
+        <title>ALPHABET INC-CL A</title>
+        <cusip>02079K305</cusip>
+        <identifiers>
+          <isin value="US02079K3059"/>
+          <ticker value="GOOGL"/>
+        </identifiers>
+        <balance>100</balance>
+        <units>NS</units>
+        <curCd>USD</curCd>
+        <valUSD>600000.00</valUSD>
+        <pctVal>60.0</pctVal>
+        <assetCat>EC</assetCat>
+        <issuerCat>CORP</issuerCat>
+        <invCountry>US</invCountry>
+      </invstOrSec>
+      <invstOrSec>
+        <name>Air Example PJSC</name>
+        <lei>21380058Y5RCZI2HBX17</lei>
+        <title>AIR EXAMPLE PJSC</title>
+        <identifiers>
+          <isin value="AEA003001012"/>
+          <other otherDesc="Internal" value="B23DL40"/>
+        </identifiers>
+        <balance>593503</balance>
+        <units>NS</units>
+        <currencyConditional curCd="AED" exchangeRt="3.673"/>
+        <valUSD>300000.00</valUSD>
+        <pctVal>30.0</pctVal>
+        <assetCat>EC</assetCat>
+        <invCountry>AE</invCountry>
+      </invstOrSec>
+      <invstOrSec>
+        <name>Example Money Market Fund</name>
+        <lei>N/A</lei>
+        <title>Example MMF</title>
+        <identifiers>
+          <ticker value="N/A"/>
+        </identifiers>
+        <curCd>USD</curCd>
+        <valUSD>99000.00</valUSD>
+        <pctVal>9.9</pctVal>
+        <assetCat>STIV</assetCat>
+        <invCountry>US</invCountry>
+      </invstOrSec>
+      <invstOrSec>
+        <name>CHICAGO MERCANTILE EXCHANGE INC.</name>
+        <lei>SNZ2OJLFK8MNNCLQOF39</lei>
+        <title>E-mini Example Futures</title>
+        <cusip>000000000</cusip>
+        <identifiers>
+          <ticker value="ES U26"/>
+        </identifiers>
+        <curCd>USD</curCd>
+        <valUSD>1000.00</valUSD>
+        <pctVal>0.1</pctVal>
+        <assetCat>DE</assetCat>
+        <invCountry>US</invCountry>
+      </invstOrSec>
+    </invstOrSecs>
+  </formData>
+</edgarSubmission>

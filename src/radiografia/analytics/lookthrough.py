@@ -8,7 +8,9 @@ part of the portfolio; `coverage` says how much of the whole portfolio that is.
 What is covered (CLAUDE.md, "Renta fija"):
     - Companies, countries, sectors, concentration and overlap: equity ETFs of the universe with
       physical replication and holdings in the local snapshot.
-    - Currency: the same equity ETFs plus fixed-income ETFs with holdings.
+    - Currency: the same equity ETFs plus fixed-income ETFs with holdings, and currency-hedged
+      fixed-income classes even without holdings (their currency is the hedge currency).
+    - Sector: only funds whose holdings report a sector (SEC N-PORT files do not).
     - Everything else is reported as not covered, with its weight and reason. Never guessed.
 
 Assumptions and limitations (also in docs/METODOLOGIA.md):
@@ -24,6 +26,8 @@ Assumptions and limitations (also in docs/METODOLOGIA.md):
     - Country is the one the issuer assigns (mostly domicile), not where the company sells.
     - Share classes of one company are merged by name ('ALPHABET CLASS A' / 'CLASS C' ->
       'ALPHABET') within the same country. Reliable inside one issuer's files only.
+    - Public dataset: a fund's holdings may be those of a US 'twin' ETF tracking the same
+      index (SEC N-PORT). Each such fund is listed in `proxies` and every result says so.
 """
 
 from __future__ import annotations
@@ -65,6 +69,8 @@ WARNING_LOOKTHROUGH_PARTIAL = "lookthrough_partial_coverage"
 WARNING_HOLDINGS_ARE_A_SNAPSHOT = "holdings_are_a_snapshot"
 WARNING_CONCENTRATION_IS_DESCRIPTIVE = "concentration_is_descriptive"
 WARNING_OVERLAP_IS_NOT_A_PROBLEM_BY_ITSELF = "overlap_is_not_a_problem_by_itself"
+WARNING_HOLDINGS_FROM_TWIN = "holdings_from_twin"
+WARNING_SECTOR_NOT_PUBLISHED = "sector_not_published"
 
 _SHARE_CLASS_SUFFIX = re.compile(r"\s+CLASS\s+[A-Z]$")
 
@@ -106,6 +112,22 @@ class OverlapPair(BaseModel):
     """Sum over companies of min(weight in A, weight in B), with weights inside each fund."""
 
 
+class ProxyNote(BaseModel):
+    """A UCITS ETF whose composition is approximated by a US ETF tracking the same index."""
+
+    model_config = ConfigDict(frozen=True)
+
+    isin: str
+    fund_name: str
+    ucits_index: str
+    us_ticker: str
+    us_name: str
+    us_index: str
+    exact_index: bool
+    note: str | None = None
+    holdings_as_of: date
+
+
 class LookThroughResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -121,6 +143,8 @@ class LookThroughResult(BaseModel):
     """Distinct companies held through the equity ETFs (share classes merged)."""
     overlaps: tuple[OverlapPair, ...]
     uncovered: tuple[UncoveredPosition, ...]
+    proxies: tuple[ProxyNote, ...] = ()
+    """Funds of this portfolio whose holdings come from a US twin ETF (public dataset)."""
 
 
 def company_key(name: str) -> str:
@@ -134,6 +158,8 @@ def _classify(fund: Fund | None, has_holdings: bool) -> tuple[bool, bool, Uncove
         return False, False, UncoveredReason.OUTSIDE_UNIVERSE
     if fund.replication is Replication.SYNTHETIC:
         return False, False, UncoveredReason.SYNTHETIC_REPLICATION
+    if not has_holdings and fund.asset_class is AssetClass.FIXED_INCOME and fund.currency_hedged:
+        return False, True, UncoveredReason.FIXED_INCOME_NOT_LOOKED_THROUGH
     if not has_holdings:
         return False, False, UncoveredReason.HOLDINGS_NOT_AVAILABLE
     if fund.asset_class is AssetClass.EQUITY:
@@ -212,12 +238,17 @@ def compute_lookthrough(
     funds: Mapping[str, Fund],
     holdings: pd.DataFrame | None,
     holdings_as_of: Mapping[str, date],
+    proxies: Mapping[str, ProxyNote] | None = None,
 ) -> LookThroughResult:
-    """`holdings`: snapshot holdings of all funds (column `isin`); None if there is no snapshot."""
+    """`holdings`: snapshot holdings of all funds (column `isin`); None if there is no snapshot.
+
+    `proxies`: funds whose holdings are those of a US twin ETF (public dataset only).
+    """
+    proxies = proxies or {}
     available = set(holdings["isin"].unique()) if holdings is not None else set()
 
-    equity_lines, currency_lines, uncovered = [], [], []
-    equity_weight = currency_weight = 0.0
+    equity_lines, currency_lines, uncovered, used_proxies = [], [], [], []
+    equity_weight = currency_weight = sector_weight = 0.0
     hedged_used = False
     dates: list[date] = []
 
@@ -238,9 +269,12 @@ def compute_lookthrough(
         if not (equity or currency):
             continue
 
-        lines = holdings[holdings["isin"] == position.isin].copy()
-        lines["w"] = holding_weights(lines) * position.weight
-        dates.append(holdings_as_of[position.isin])
+        if position.isin in available:
+            lines = holdings[holdings["isin"] == position.isin].copy()
+            lines["w"] = holding_weights(lines) * position.weight
+            dates.append(holdings_as_of[position.isin])
+            if position.isin in proxies:
+                used_proxies.append(proxies[position.isin])
 
         if currency:
             currency_weight += position.weight
@@ -253,6 +287,8 @@ def compute_lookthrough(
         if equity:
             equity_weight += position.weight
             equity_lines.append(lines)
+            if lines["sector"].notna().any():
+                sector_weight += position.weight
 
     data_as_of = min(dates) if dates else None
 
@@ -262,7 +298,9 @@ def compute_lookthrough(
         country = eq["location"].where(~cash, CASH_LABEL)
         sector = eq["sector"].where(~cash, CASH_LABEL)
         geography_series = eq["w"].groupby(country).sum()
-        sector_series = eq["w"].groupby(sector).sum()
+        # funds that publish no sector at all are left out of the sector breakdown
+        with_sector = eq.groupby("isin")["sector"].transform(lambda s: s.notna().any())
+        sector_series = eq.loc[with_sector, "w"].groupby(sector[with_sector]).sum()
         companies = eq[~cash].assign(company=eq.loc[~cash, "name"].map(company_key))
     else:
         geography_series = sector_series = pd.Series(dtype=float)
@@ -274,6 +312,11 @@ def compute_lookthrough(
     )
 
     snapshot_warning = [WARNING_HOLDINGS_ARE_A_SNAPSHOT]
+    if used_proxies:
+        snapshot_warning.append(WARNING_HOLDINGS_FROM_TWIN)
+    sector_warnings = list(snapshot_warning)
+    if sector_weight < equity_weight - 1e-12:
+        sector_warnings.append(WARNING_SECTOR_NOT_PUBLISHED)
     currency_warnings = [*snapshot_warning, WARNING_CURRENCY_IS_TRADING_CURRENCY]
     if hedged_used:
         currency_warnings.append(WARNING_HEDGED_CLASSES_ASSUMED)
@@ -287,7 +330,9 @@ def compute_lookthrough(
             *common,
             [*snapshot_warning, WARNING_COUNTRY_IS_DOMICILE],
         ),
-        sector=_breakdown(SECTOR, sector_series, *common, snapshot_warning),
+        sector=_breakdown(
+            SECTOR, sector_series, portfolio, sector_weight, data_as_of, sector_warnings
+        ),
         currency=_breakdown(
             CURRENCY, currency_series, portfolio, currency_weight, data_as_of, currency_warnings
         ),
@@ -319,6 +364,7 @@ def compute_lookthrough(
         else companies.groupby(["company", "location"]).ngroups,
         overlaps=_overlaps(equity_lines),
         uncovered=tuple(uncovered),
+        proxies=tuple(dict.fromkeys(used_proxies)),
     )
 
 

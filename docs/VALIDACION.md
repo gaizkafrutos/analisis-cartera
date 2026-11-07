@@ -80,4 +80,40 @@ Minkowski): √(12 × 36/35) × 2 × 0,005 ÷ NAV mínimo de la ventana.
 **Lo que confirma:** la gestora usa la desviación típica muestral (con la poblacional saldría
 ~0,16 puntos menos).
 
+## Versión pública: gemelos de EE. UU. frente a los datos de iShares (fase 1 de datos reales)
+La versión pública aproxima la composición de cada ETF UCITS con la del ETF de EE. UU. que
+replica el mismo índice (formulario N-PORT de la SEC). Comparación, fondo a fondo, entre lo que
+calcula la app con los datos exactos de iShares (posiciones a 4-nov-2026) y con el gemelo (datos
+de la SEC a 30-jun, 31-jul o 31-ago-2026). Se regenera con `scripts/build_public.py`.
+
+| ETF UCITS (índice) | Gemelo | EE. UU. | 10 mayores | Nº efectivo | Empresas |
+|---|---|---|---|---|---|
+| MSCI World | URTH | 72,5 % / 69,4 % | 27,8 % / 27,5 % | 83 / 85 | 1.242 / 1.283 |
+| MSCI ACWI | ACWI | 64,6 % / 60,8 % | 25,7 % / 24,8 % | 99 / 106 | 1.655 / 2.217 |
+| S&P 500 | IVV | 100 % / 96,8 % | 39,2 % / 37,8 % | 44 / 47 | 501 / 501 |
+| Nasdaq-100 | QQQ | 97,1 % / 94,3 % | 49,5 % / 47,7 % | 30 / 32 | 100 / 101 |
+| MSCI EM IMI | IEMG | — | 32,0 % / 31,7 % | 39 / 37 | 2.943 / 2.868 |
+| EURO STOXX 50 | FEZ | — | 41,5 % / 41,9 % | 33 / 31 | 50 / 50 |
+
+(iShares / gemelo.) Cartera de ejemplo con fondos solapados: EE. UU. 85,7 % / 82,6 %,
+solapamiento World–S&P 500 70,7 % / 66,4 %, 10 mayores 35,0 % / 34,4 %, nº efectivo 56 / 60.
+
+**De dónde salen las diferencias:**
+- **Fechas:** la SEC publica con unos 60 días de retraso y solo a fin de mes; entre junio y
+  noviembre el mercado cambia los pesos (sobre todo los de las mayores empresas).
+- **País:** la SEC usa el país del emisor (Accenture, Medtronic o Linde cuentan como Irlanda o
+  Reino Unido); iShares las asigna a EE. UU. Por eso el peso de EE. UU. sale unos 3 puntos más
+  bajo con el gemelo. No es un error de ninguno de los dos: son dos definiciones.
+- **Muestreo:** el MSCI ACWI de iShares UCITS compra una muestra (1.655 empresas); el gemelo,
+  casi todo el índice (2.217).
+
+**Gemelos con un índice solo parecido: descartados.** El error era demasiado grande para
+llamarlo aproximación, así que esos ETFs salen como "no cubierto" en la versión pública:
+
+| ETF UCITS (índice) | Gemelo (índice) | 10 mayores | Nº efectivo | Empresas |
+|---|---|---|---|---|
+| MSCI Europe | IEUR (MSCI Europe IMI) | 21,6 % / 18,7 % | 111 / 135 | 381 / 1.004 |
+| MSCI Japan IMI | EWJ (MSCI Japan) | 23,5 % / 30,1 % | 104 / 67 | 928 / 169 |
+| S&P 500 Capped 35/20 IT | XLK (Technology Select Sector) | 76,7 % / 64,4 % | 8 / 16 | 76 / 74 |
+
 ## Pendiente

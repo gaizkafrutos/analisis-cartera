@@ -26,6 +26,7 @@ DISTRIBUTIONS_FILE = "distributions.csv"
 FX_FILE = "fx.csv"
 CHARACTERISTICS_FILE = "characteristics.csv"
 ESTR_FILE = "estr.csv"
+PROXIES_FILE = "proxies.csv"
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,8 @@ class Snapshot:
     """Issuer 'Portfolio Characteristics': isin, label, value (text), as_of."""
     estr: pd.DataFrame | None = None
     """ECB euro short-term rate: date, rate (% per year)."""
+    proxies: pd.DataFrame | None = None
+    """Public dataset only: per UCITS ISIN, the US twin ETF whose SEC holdings stand in for it."""
 
 
 def write_snapshot(
@@ -105,4 +108,5 @@ def read_snapshot(directory: Path) -> Snapshot:
         fx=_optional_csv(directory / FX_FILE, ["date"]),
         characteristics=_optional_csv(directory / CHARACTERISTICS_FILE, ["as_of"]),
         estr=_optional_csv(directory / ESTR_FILE, ["date"]),
+        proxies=_optional_csv(directory / PROXIES_FILE, ["report_date"]),
     )

@@ -22,20 +22,16 @@ from html import unescape
 
 import pandas as pd
 
+from radiografia.data.sources.holdings_source import HOLDINGS_COLUMNS as COMMON_COLUMNS
+from radiografia.data.sources.holdings_source import (
+    HoldingsFormatError,
+    ParsedHoldings,
+    UnusableHoldingsFile,
+    normalise,
+)
 from radiografia.data.sources.ishares import SITE, IsharesFormatError, parse_issuer_date
 
-HOLDINGS_COLUMNS = [
-    "ticker",
-    "name",
-    "sector",
-    "asset_class",
-    "location",
-    "exchange",
-    "market_currency",
-    "market_value",
-    "notional_value",
-    "weight_published",
-]
+HOLDINGS_COLUMNS = [column for column in COMMON_COLUMNS if column != "security_isin"]
 _CSV_TO_COLUMN = {
     "Ticker": "ticker",
     "Name": "name",
@@ -150,3 +146,44 @@ def parse_exposure_breakdowns(rows: list[list[str]]) -> pd.DataFrame:
     if not records:
         raise IsharesFormatError("no exposure breakdown sections found")
     return pd.DataFrame.from_records(records, columns=BREAKDOWN_COLUMNS)
+
+
+# --- as a HoldingsSource (files the user uploads) ----------------------------------------------
+
+_WORKBOOK_MARKERS = (b"urn:schemas-microsoft-com:office:spreadsheet", b"<Workbook")
+
+
+def _decode(content: bytes) -> str:
+    try:
+        return content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return content.decode("cp1252", errors="replace")
+
+
+class IsharesHoldingsCsv:
+    """`<TICKER>_holdings.csv` ("Detailed Holdings and Analytics", UK site in English)."""
+
+    issuer = "iShares"
+
+    def recognises(self, filename: str, content: bytes) -> bool:
+        return _decode(content[:256]).lstrip().startswith("Fund Holdings as of")
+
+    def parse(self, filename: str, content: bytes) -> ParsedHoldings:
+        try:
+            parsed = parse_holdings_csv(_decode(content).lstrip())
+        except IsharesFormatError as exc:
+            raise HoldingsFormatError(str(exc)) from exc
+        return ParsedHoldings(self.issuer, parsed.as_of, normalise(parsed.holdings))
+
+
+class IsharesWorkbook:
+    """The product workbook (Excel 2003 XML): recognised, but its "Holdings" sheet has no country
+    or exchange per position, so it cannot place companies or match them across funds."""
+
+    issuer = "iShares"
+
+    def recognises(self, filename: str, content: bytes) -> bool:
+        return any(marker in content[:4096] for marker in _WORKBOOK_MARKERS)
+
+    def parse(self, filename: str, content: bytes) -> ParsedHoldings:
+        raise UnusableHoldingsFile("ishares_workbook")

@@ -4,7 +4,8 @@ Rules (CLAUDE.md, "Regulación y lenguaje"):
     - Only facts already computed by the engine; every number comes from a MetricResult.
     - A point is left out when its metric is not available: nothing is estimated to fill a gap.
     - Describe, never recommend: no "deberías", no buy/sell/switch, no alternative products.
-    - Comparisons are only with the reference index (iShares MSCI ACWI), as a neutral benchmark.
+    - Comparisons are only with the reference index (the world equity market: iShares MSCI ACWI
+      with real data, a fictitious fund in the demo), as a neutral benchmark.
     - Left out after the audit (AUDITORIA.md), still in the detail tabs: VaR (adds nothing to the
       volatility), alpha (almost always indistinguishable from zero), the simulated return
       (invites reading it as a forecast) and the weight in shared companies (easy to misread).
@@ -18,9 +19,11 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict
 
 from radiografia.analytics.costs import CostsResult
+from radiografia.analytics.fund_breakdown import CASH_LABEL
 from radiografia.analytics.lookthrough import LookThroughResult, UncoveredReason
 from radiografia.analytics.returns import ReturnsResult
 from radiografia.analytics.risk import WARNING_LOW_EQUITY_SHARE_FOR_BETA, RiskResult
+from radiografia.data.datasets import DatasetKey
 from radiografia.domain.metrics import BreakdownResult, MetricResult, MetricStatus
 from radiografia.domain.portfolio import CoverageStatus, Portfolio
 from radiografia.reporting.formatting import (
@@ -31,12 +34,15 @@ from radiografia.reporting.formatting import (
     short_fund_name,
 )
 from radiografia.reporting.presentation import country_name, currency_name
-from radiografia.reporting.texts import DISCLAIMER
+from radiografia.reporting.texts import DATASET_TEXTS, DISCLAIMER
 
 SAME_INDEX_OVERLAP = 0.90
 NOTABLE_OVERLAP = 0.30
 NOTABLE_COST_GAP = 0.10  # share of cost minus share of money, to mention the costliest ETF
 NEGLIGIBLE = 0.005  # below 0.5 % a share is described as "practically nothing"
+
+
+REAL_REFERENCE = DATASET_TEXTS[DatasetKey.REAL].reference_in_summary
 
 
 class Topic(StrEnum):
@@ -155,7 +161,9 @@ def costs_point(costs: CostsResult) -> SummaryPoint | None:
 
 
 def geography_point(
-    lookthrough: LookThroughResult, reference: LookThroughResult | None
+    lookthrough: LookThroughResult,
+    reference: LookThroughResult | None,
+    reference_name: str = REAL_REFERENCE,
 ) -> SummaryPoint | None:
     geography = lookthrough.geography
     if not geography.items:
@@ -165,10 +173,12 @@ def geography_point(
     if reference is not None and reference.geography.items:
         ref = _weight(reference.geography, top.label)
         if ref is not None:
-            text += f" (en el índice mundial MSCI ACWI, el {_pct(ref)})"
+            text += f" (en {reference_name}, el {_pct(ref)})"
     text += "."
-    if len(geography.items) > 1:
-        second = geography.items[1]
+    # the runner-up is a country: cash is not one, and under 1 % it would read "con el 0 %"
+    others = [item for item in geography.items[1:] if item.label != CASH_LABEL]
+    if others and others[0].weight >= 0.005:
+        second = others[0]
         text += f" Le sigue {_country(second.label)} con el {_pct(second.weight)}."
     return SummaryPoint(topic=Topic.GEOGRAPHY, text=text)
 
@@ -288,16 +298,22 @@ def build_summary(
     risk: RiskResult,
     fund_names: dict[str, str],
     reference: LookThroughResult | None = None,
+    reference_name: str = REAL_REFERENCE,
+    disclaimer: str = DISCLAIMER,
 ) -> Summary:
+    """`reference_name` and `disclaimer` come from the dataset (real or demo) in texts.py."""
     candidates = [
         coverage_point(portfolio),
         asset_mix_point(lookthrough),
         costs_point(costs),
-        geography_point(lookthrough, reference),
+        geography_point(lookthrough, reference, reference_name),
         currency_point(lookthrough),
         concentration_point(lookthrough),
         overlap_point(lookthrough, fund_names),
         risk_point(risk),
         market_point(risk),
     ]
-    return Summary(points=tuple(point for point in candidates if point is not None))
+    return Summary(
+        points=tuple(point for point in candidates if point is not None),
+        disclaimer=disclaimer,
+    )

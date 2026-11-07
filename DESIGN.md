@@ -52,6 +52,9 @@ La pareja siena/azul es fija: el lector aprende una vez que naranja es lo suyo y
   unificada al pasar el dedo o el ratón.
 - **No disponible**: aviso con rayado diagonal, la convención del terreno sin cartografiar.
 - **Pestañas**: rótulos de hoja; subrayado propio en siena.
+- **Sello de demo** (solo en `app/demo.py`): "Demo · datos ficticios" en siena, doble borde y
+  ligeramente girado, como el sello de un agrimensor; así ninguna captura de la demo puede pasar
+  por datos reales.
 
 ## Reglas
 - Sin tarjetas ni sombras: reglas finas y dobles, como en papel.

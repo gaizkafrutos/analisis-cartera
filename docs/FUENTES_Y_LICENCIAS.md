@@ -139,6 +139,22 @@ Queda un punto que no es técnico, sino de permiso, y lo decide el autor:
 3. No recomendado: publicar igualmente con datos de iShares confiando en que mostrar solo
    agregados sea tolerado. Contradice lo que dicen sus términos.
 
+### Actualización (7-nov-2026): demo pública con datos sintéticos
+El autor descarta pedir el permiso. Ninguna otra gestora de UCITS lo resuelve: Xtrackers
+(DWS), Amundi y SPDR exigen igualmente consentimiento previo por escrito para copiar o publicar
+el contenido de sus webs. Decisión:
+- **Repositorio público** con el código y el modo local, en el que cada usuario descarga los
+  datos de iShares para su uso personal (lo que permiten sus términos).
+- **Demo pública con datos sintéticos** (`app/demo.py`, `data/demo/`, generados por
+  `scripts/build_demo.py`): ningún dato de terceros. Los ISIN empiezan por `ZZ`, un código
+  de uso privado en ISO 3166, así que nunca coinciden con un valor real.
+- Descartado: una web pública que sirva datos de iShares, ni siquiera agregados o con las
+  carteras de ejemplo precalculadas. Sería mostrar en público datos derivados de iShares, que
+  sus términos no permiten.
+- Alternativa estudiada para el futuro: posiciones de ETFs de EE. UU. en el formulario N-PORT
+  de la SEC (información pública redistribuible, citando a la SEC); sin sector ni precios
+  diarios, y no son UCITS.
+
 ## Fuentes consultadas (5-nov-2026)
 - Yahoo, Términos de servicio: https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html y
   https://legal.yahoo.com/ie/en/yahoo/terms/otos/index.html

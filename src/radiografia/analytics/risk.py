@@ -47,7 +47,6 @@ BETA = "beta"
 ALPHA = "alpha"
 EPISODE_DRAWDOWNS = "episode_drawdowns"
 
-BENCHMARK_ISIN = "IE00B6R52259"  # iShares MSCI ACWI UCITS ETF (decision in CLAUDE.md)
 WINDOW_YEARS = 5
 MIN_YEARS = 1.0
 SHORT_YEARS = 3.0

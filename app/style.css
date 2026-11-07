@@ -55,6 +55,13 @@ a { text-underline-offset: 0.18em; }
   font-size: 1.12rem; line-height: 1.4; color: var(--ink-2); margin: 0.85rem 0 0; max-width: 24rem;
 }
 .sheet-head p.tagline em { font-style: italic; color: var(--water); }
+/* demo only: a surveyor's stamp, so a screenshot can never pass for real data */
+.sheet-head p.demo-stamp {
+  display: inline-block; margin: 1rem 0 0; padding: 0.3rem 0.7rem 0.25rem;
+  font-family: var(--label); font-weight: 600; font-size: 0.95rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--contour); border: 2px solid var(--contour);
+  outline: 1px solid var(--contour); outline-offset: 2px; transform: rotate(-2deg);
+}
 
 /* --- disclaimer as the sheet's margin note --------------------------------------------------- */
 .st-key-disclaimer [data-testid="stAlert"] > div {

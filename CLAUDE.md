@@ -101,9 +101,12 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
   un script de `scripts/` que escribe ese formato, y el motor solo lee snapshots. Así se cambia
   de fuente según lo que permitan las licencias. Las interfaces `PriceSource` y
   `HoldingsSource` no existen todavía: crearlas cuando haya una segunda fuente real.
-- Qué datos usa el motor lo decide `data/datasets.py` (`RADIOGRAFIA_DATA`: `real` por
-  defecto, `demo`): rutas, universo, ejemplos e índice de referencia. Los textos sobre los
-  datos (referencia, fuentes, aviso de demo) están en `reporting/texts.py`, `DATASET_TEXTS`.
+- Qué datos usa el motor lo decide `data/datasets.py`: rutas, universo, ejemplos e índice de
+  referencia de `real`, `demo`, `public` (modo SEC) y `upload` (ficheros del usuario, en
+  memoria). Por defecto, `RADIOGRAFIA_DATA` si existe; si no, `real` con snapshot local y `demo`
+  sin él. En la app, cada sesión cambia de datos con el selector «¿Con qué datos?»; el servicio
+  recibe el conjunto elegido (`source`). Los textos sobre los datos (referencia, fuentes, avisos)
+  están en `reporting/texts.py`, `DATASET_TEXTS`.
 
 ## Renta fija (alcance reducido en el MVP)
 - Todo ETF se clasifica por tipo de activo: renta variable, renta fija, otros.
@@ -117,7 +120,7 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
 ## Reglas de datos (no negociables)
 - **No inventar datos ni composiciones.** Si falta algo: valor `None`, estado `no_disponible` y
   motivo. Nunca rellenar con supuestos silenciosos.
-- **Aproximación por gemelo (versión pública, decidida por el autor el 7-nov-2026):** la
+- **Aproximación por gemelo (modo SEC, solo en local; decidida por el autor el 7-nov-2026):** la
   composición de un ETF UCITS puede tomarse de la del ETF de EE. UU. que replica **el mismo
   índice** (SEC N-PORT), siempre avisado en pantalla, con gemelo y fecha, y con el error medido
   en `docs/VALIDACION.md`. Índices solo parecidos: no se usan. Nunca en el modo local real.
@@ -165,10 +168,10 @@ fuentes externas ──► scripts/ (ingesta) ──► snapshots normalizados c
 ## Datos en el despliegue
 Los términos de iShares limitan su web a uso personal y no comercial y piden autorización
 previa para reproducir o mostrar sus datos (lo mismo Xtrackers, Amundi, SPDR y Vanguard). El
-autor no pide permiso (7-nov-2026): código público; la web pública usa datos reales de la SEC
-(composición de los gemelos de EE. UU., `app/public.py`; antes, la demo sintética `app/demo.py`);
-con los datos exactos de iShares, la app se ejecuta en local y cada usuario los descarga. Nunca
-servir datos de iShares en público.
+autor no pide permiso (7-nov-2026): código público; la web pública es la demo sintética
+(`app/demo.py`), que también permite subir tus propios ficheros de iShares (leídos en memoria,
+nunca guardados); el modo SEC (`app/public.py`) y los datos exactos de iShares se usan en local,
+y cada usuario descarga los suyos. Nunca servir datos de iShares en público.
 
 ## Skills, conectores y herramientas externas
 - No instalar skills, conectores ni MCP de terceros en el proyecto sin decisión del autor. Si
@@ -200,7 +203,10 @@ servir datos de iShares en público.
 - Los tests no dependen de la red.
 - La interfaz se prueba sin navegador con `streamlit.testing.v1.AppTest` (`tests/e2e/test_app.py`).
   AppTest no puede escribir en `st.data_editor`: el formulario se prueba fijando
-  `session_state["form_rows"]`, que es lo que guarda el botón "Analizar".
+  `session_state["form_rows"]`, que es lo que guarda el botón "Analizar". Tampoco puede subir
+  ficheros: la subida de posiciones se prueba fijando `session_state["holdings_uploads"]`.
+- `tests/conftest.py` fija `RADIOGRAFIA_DATA=real` en cada test, para que el resultado no dependa
+  de si hay snapshot local; los tests de demo, modo SEC, subida o modo por defecto la cambian.
 - Streamlit solo recarga el script de la app: tras cambiar el paquete `radiografia`, reiniciar el
   servidor.
 
@@ -249,7 +255,9 @@ servir datos de iShares en público.
 | Licencia del código | MIT (`LICENSE`); no cubre datos de terceros (sección "Licencia" del README) | tomada (6-nov-2026) |
 | Cifras de iShares en README y docs | Se mantienen como ejemplos puntuales, con aviso de procedencia y fecha en cada documento; nada de tablas completas de posiciones | tomada (6-nov-2026) |
 | Repositorio | Público desde el 7-nov-2026 (MIT); ramas fusionadas borradas | tomada |
-| Versión pública con datos reales | Composición del ETF de EE. UU. del mismo índice (SEC N-PORT), solo índices idénticos; aviso, gemelo y fecha en pantalla; sector no disponible; riesgo en una fase posterior con las rentabilidades mensuales de la SEC | tomada (7-nov-2026) |
+| Modo SEC | Composición del ETF de EE. UU. del mismo índice (SEC N-PORT), solo índices idénticos; aviso, gemelo y fecha en pantalla; sector no disponible; solo en local (la URL pública es la demo) | tomada (7-nov-2026) |
+| Sube tu fichero | CSV de posiciones de iShares, leído en memoria; ETF propuesto por el ticker del nombre y confirmado por el usuario; solo ETFs del universo; el Excel no (no trae país); sin riesgo (no hay precios) | tomada (7-nov-2026) |
+| Modo por defecto | `RADIOGRAFIA_DATA` si existe; si no, datos reales con snapshot local y demo sin él | tomada (7-nov-2026) |
 | Demo pública | 8 fondos ficticios (`ZZDEMO…`), sello "Demo · datos ficticios" y aviso en cada sección; mismas carteras de ejemplo que el modo real | tomada (7-nov-2026) |
 | Entrada: ISIN fuera del universo | ISIN válido pero desconocido no es error: "no cubierto" con su % de cartera | tomada |
 | Entrada: ISIN inválido | Formato o dígito de control incorrecto = error que el usuario debe corregir | tomada |

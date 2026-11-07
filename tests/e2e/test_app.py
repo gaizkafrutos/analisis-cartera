@@ -88,3 +88,20 @@ def test_without_snapshot_the_app_degrades_gracefully(app, monkeypatch):
     assert not app.exception
     assert _metrics(app)["Coste anual estimado"] == "16,50 € / año"
     assert any("No disponible" in info.value for info in app.info)
+
+
+def test_about_page_explains_the_data_and_keeps_the_choices(app):
+    from radiografia.reporting.texts import ABOUT_BUTTON, BACK_BUTTON
+
+    app.selectbox(key="example").set_value("Muy concentrada").run()
+    app.button(key="about_open").click().run()
+    assert not app.exception
+    text = " ".join(block.value for block in app.markdown)
+    assert "Por qué no hay una web pública con datos reales" in text
+    assert "no asesoramiento jurídico" in text
+    assert "deberías" not in text.lower()
+    assert not app.metric  # no analysis on this page
+    app.button(key="about_close").click().run()
+    assert app.selectbox(key="example").value == "Muy concentrada"
+    assert _metrics(app)["Coste anual estimado"] == "24,00 € / año"
+    assert ABOUT_BUTTON and BACK_BUTTON

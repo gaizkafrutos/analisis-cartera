@@ -246,7 +246,7 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
   que publica iShares; ver `docs/VALIDACION.md`. La beta publicada por iShares es frente a su
   propio índice, del que no tenemos la serie: no se puede contrastar.
 
-## Versión pública: composición de los gemelos de EE. UU. (SEC)
+## Modo SEC: composición de los gemelos de EE. UU. (SEC)
 Código: `scripts/build_public.py` (descarga), `radiografia.data.sources.sec_nport` (lector),
 `data/reference/twins.csv` (parejas), `data/public/` (datos, en git) y `app/public.py`.
 
@@ -263,7 +263,7 @@ Código: `scripts/build_public.py` (descarga), `radiografia.data.sources.sec_npo
   como no disponible.
 - **Clase cubierta de renta fija sin posiciones:** cuenta para la divisa (la de cobertura) aunque
   no haya fichero, porque esa regla no depende de las posiciones.
-- **Riesgo:** aún no en la versión pública. `twin_returns.csv` ya guarda las rentabilidades
+- **Riesgo:** aún no en el modo SEC. `twin_returns.csv` ya guarda las rentabilidades
   mensuales de cada gemelo para la siguiente fase.
 
 ## Demo con datos sintéticos

@@ -14,9 +14,9 @@ cuánto pagas y cuánto se ha movido.
 *Demo con datos inventados, cartera de ejemplo "Muy concentrada". Ni las capturas ni el GIF
 muestran datos reales.*
 
-**Pruébala: [radiografia-cartera.streamlit.app](https://radiografia-cartera.streamlit.app)**, con
-datos reales públicos de la SEC (ver [Datos y licencias](#datos-y-licencias)). Con los datos
-exactos de tu gestora, la app se ejecuta en local.
+**Pruébala: [radiografia-cartera.streamlit.app](https://radiografia-cartera.streamlit.app)**, una demo con fondos, empresas y precios
+ficticios (ver [Datos y licencias](#datos-y-licencias)). Con ETFs reales, la app se ejecuta en
+local.
 
 ## El problema
 
@@ -152,7 +152,7 @@ los datos públicos recorren todas las secciones de principio a fin). El segundo
 
 Por eso hay tres modos:
 
-- **Versión pública con datos reales** (`app/public.py`): la composición de cada ETF es la del
+- **Modo SEC, con datos reales públicos** (`app/public.py`, en local): la composición de cada ETF es la del
   ETF de EE. UU. que replica **el mismo índice** (por ejemplo, IVV para un S&P 500 UCITS),
   publicada por la SEC (formulario N-PORT, información pública). Es una aproximación y la app lo
   dice: qué gemelo usa cada ETF, con qué fecha (unos dos meses de retraso) y cuánto se desvía de

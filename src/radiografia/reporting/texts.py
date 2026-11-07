@@ -68,7 +68,7 @@ DEMO_NOTICE = (
 )
 
 PUBLIC_NOTICE = (
-    "Versión pública: la composición de cada ETF se aproxima con la del ETF de EE. UU. que replica "
+    "Modo SEC: la composición de cada ETF se aproxima con la del ETF de EE. UU. que replica "
     "el mismo índice (datos reales de la SEC, con unos meses de retraso). Para los datos exactos "
     "de tu ETF, la app se ejecuta en local (ver README)."
 )

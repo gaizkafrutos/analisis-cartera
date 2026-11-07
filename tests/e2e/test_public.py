@@ -86,6 +86,8 @@ def test_public_app_runs_and_says_where_the_data_come_from():
         assert not app.exception
         assert any(PUBLIC_NOTICE in info.value for info in app.info)
         assert TWINS_TITLE in [expander.label for expander in app.expander]
+        # SEC holdings are months old: the app says so next to the data block
+        assert any("hace" in warning.value and "SEC" in warning.value for warning in app.warning)
         captions = " ".join(caption.value for caption in app.caption)
         assert "SEC" in captions  # footer credits
         assert "iShares (BlackRock) para composición" not in captions

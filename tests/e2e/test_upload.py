@@ -16,7 +16,7 @@ from radiografia.data.datasets import UPLOAD
 from radiografia.data.snapshots import latest_snapshot_dir, read_snapshot
 from radiografia.domain.metrics import MetricStatus
 from radiografia.reporting import input_messages as im
-from radiografia.reporting.texts import UPLOAD_NO_FILES, UPLOAD_NOTICE
+from radiografia.reporting.texts import DATASET_TEXTS, UPLOAD_NO_FILES, UPLOAD_NOTICE
 
 ROOT = Path(__file__).resolve().parents[2]
 APP = str(ROOT / "app" / "streamlit_app.py")
@@ -53,6 +53,9 @@ def test_uploaded_file_is_analysed_in_memory():
     assert report.risk.volatility.status is MetricStatus.NOT_AVAILABLE  # no prices in this mode
     assert UPLOAD_NOTICE in report.summary.disclaimer
     assert service.missing_holdings(portfolio, uploaded) == (EMERGING,)
+    # the asset mix comes from the funds' asset class, not from which ones have a file
+    mix = next(p.text for p in report.summary.points if p.topic.value == "asset_mix")
+    assert "un 70 % es renta variable" in mix and "un 30 % renta fija" in mix
 
 
 def test_file_for_the_wrong_kind_of_fund_is_left_out():
@@ -105,6 +108,8 @@ def test_app_without_files_says_what_to_upload(app):
     assert not app.exception
     assert any(UPLOAD_NO_FILES in info.value for info in app.info)
     assert any(UPLOAD_NOTICE in info.value for info in app.info)
+    captions = " ".join(caption.value for caption in app.caption)
+    assert DATASET_TEXTS[UPLOAD.key].choice_help in captions
     metrics = {metric.label: metric.value for metric in app.metric}
     assert metrics["Coste anual estimado"] == "16,50 € / año"  # costs need no holdings
 

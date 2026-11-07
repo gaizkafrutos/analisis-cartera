@@ -20,7 +20,7 @@ from pydantic import BaseModel, ConfigDict
 
 from radiografia.analytics.costs import CostsResult
 from radiografia.analytics.fund_breakdown import CASH_LABEL
-from radiografia.analytics.lookthrough import LookThroughResult, UncoveredReason
+from radiografia.analytics.lookthrough import LookThroughResult
 from radiografia.analytics.returns import ReturnsResult
 from radiografia.analytics.risk import WARNING_LOW_EQUITY_SHARE_FOR_BETA, RiskResult
 from radiografia.data.datasets import DatasetKey
@@ -114,15 +114,12 @@ def coverage_point(portfolio: Portfolio) -> SummaryPoint | None:
 
 
 def asset_mix_point(lookthrough: LookThroughResult) -> SummaryPoint | None:
-    """Equity vs fixed income, only when there is fixed income (otherwise it is all equity)."""
-    bonds = sum(
-        u.weight
-        for u in lookthrough.uncovered
-        if u.reason is UncoveredReason.FIXED_INCOME_NOT_LOOKED_THROUGH
-    )
+    """Equity vs fixed income of the recognised funds (their asset class in the universe), only
+    when there is fixed income. It does not depend on which funds have holdings files."""
+    mix = lookthrough.asset_mix
+    bonds, equity = mix.get("fixed_income", 0.0), mix.get("equity", 0.0)
     if bonds <= 0 or not lookthrough.geography.items:
         return None
-    equity = lookthrough.geography.coverage.covered_weight
     analysed = equity + bonds
     return SummaryPoint(
         topic=Topic.ASSET_MIX,

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from datetime import date
 from enum import StrEnum
 from functools import lru_cache
 
@@ -25,6 +26,7 @@ import pandas as pd
 from pydantic import BaseModel, ConfigDict
 
 from radiografia.analytics.costs import CostsResult, compute_costs, tracking_differences
+from radiografia.analytics.freshness import DataFreshness, data_freshness
 from radiografia.analytics.lookthrough import LookThroughResult, ProxyNote, compute_lookthrough
 from radiografia.analytics.returns import ReturnsResult, compute_returns, fund_index_eur
 from radiografia.analytics.risk import RiskResult, compute_risk
@@ -56,6 +58,8 @@ class AnalysisReport(BaseModel):
     """Look-through of the reference index (world equity market), to compare exposures with."""
     dataset: DatasetKey = DatasetKey.REAL
     """Which data produced it: real (iShares + ECB) or the synthetic demo."""
+    freshness: DataFreshness | None = None
+    """Age of the holdings (None for the demo or without holdings)."""
 
 
 class ExamplePortfolio(BaseModel):
@@ -289,6 +293,7 @@ def analyze(
     universe: Universe | None = None,
     snapshot: Snapshot | object | None = _LATEST,
     source: Dataset | None = None,
+    today: date | None = None,
 ) -> AnalysisReport:
     """Run every metric. `snapshot` defaults to the latest stored one of the dataset; pass None
     to analyse without holdings (look-through then reports not available)."""
@@ -359,4 +364,7 @@ def analyze(
         ),
         reference=reference,
         dataset=data.key,
+        freshness=None
+        if data.is_demo
+        else data_freshness(lookthrough.geography.data_as_of, today or date.today()),
     )

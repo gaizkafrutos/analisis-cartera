@@ -54,6 +54,10 @@ class DatasetTexts:
     """Names of the crisis episodes when they are not the real ones (the demo's are scripted)."""
     choice: str = ""
     """Name of the dataset in the app's data selector."""
+    choice_help: str = ""
+    """One line under the selector saying what the chosen data are."""
+    stale_hint: str = ""
+    """What to do when the holdings are more than a month old."""
 
     @property
     def disclaimer(self) -> str:
@@ -87,6 +91,22 @@ DATA_CHOICE_HELP = (
     "La demo usa fondos y empresas inventados. Con tus ficheros, la app analiza la composición "
     "real de tus ETFs de iShares, Xtrackers, Amundi o SPDR a partir de lo que descargas de la "
     "web de cada gestora."
+)
+STALE_DATA = (
+    "Las posiciones son del {date}, hace {days} días. La composición de un fondo cambia con el "
+    "tiempo: estas cifras describen tus ETFs en esa fecha, no hoy. {hint}"
+)
+DATA_AGE = "hace {days} días"
+VERSUS_TITLE = "Tu cartera frente al mercado mundial"
+VERSUS_ROWS = {
+    "us": "Renta variable en empresas de EE. UU.",
+    "usd": "Cartera que depende del dólar",
+    "top10": "Peso de las 10 mayores empresas",
+    "effective": "Equivale a tener … empresas a partes iguales",
+}
+VERSUS_NOTE = (
+    "Mismo cálculo para tu cartera y para el mercado mundial de acciones. La cartera incluye sus "
+    "bonos en la línea del dólar; el mercado mundial es solo acciones."
 )
 UPLOAD_TITLE = "Ficheros de posiciones de tus ETFs"
 UPLOAD_HELP = (
@@ -125,6 +145,10 @@ DATASET_TEXTS = {
         ),
         data_date_note="Datos de la gestora consultados el {date}.",
         choice="Tus datos locales (iShares)",
+        choice_help="Datos de iShares y del BCE descargados en este ordenador con los scripts "
+        "del proyecto.",
+        stale_hint="Para actualizarlas, vuelve a ejecutar scripts/build_holdings.py y "
+        "scripts/build_prices.py.",
     ),
     DatasetKey.DEMO: DatasetTexts(
         reference="Demo Mercado Mundial (fondo ficticio)",
@@ -139,6 +163,8 @@ DATASET_TEXTS = {
         notice=DEMO_NOTICE,
         episode_labels={"2020": "2020 (caída ficticia)", "2022": "2022 (caída ficticia)"},
         choice="Demo con datos ficticios",
+        choice_help="Fondos, empresas y precios inventados para ver cómo funciona la app. No "
+        "describen ningún producto real.",
     ),
     DatasetKey.PUBLIC: DatasetTexts(
         reference="Mercado mundial de acciones (MSCI ACWI, con la composición del ETF de EE. UU. "
@@ -159,6 +185,9 @@ DATASET_TEXTS = {
         data_date_note="Composición publicada en la SEC con fecha {date}.",
         notice=PUBLIC_NOTICE,
         choice="Modo SEC (gemelos de EE. UU.)",
+        choice_help="Composición real de los ETFs de EE. UU. que replican el mismo índice, "
+        "publicada por la SEC.",
+        stale_hint="La SEC publica las posiciones de cada fondo con unos dos meses de retraso.",
     ),
     DatasetKey.UPLOAD: DatasetTexts(
         reference="Mercado mundial de acciones (MSCI ACWI), solo si subes también el fichero "
@@ -175,6 +204,9 @@ DATASET_TEXTS = {
         data_date_note="Posiciones de tus ficheros, con fecha {date}.",
         notice=UPLOAD_NOTICE,
         choice="Tus ficheros de la gestora",
+        choice_help="La composición real de tus ETFs, a partir de los ficheros de posiciones que "
+        "descargas de cada gestora y subes más abajo.",
+        stale_hint="Para actualizarlas, descarga de nuevo los ficheros de la web de la gestora.",
     ),
 }
 

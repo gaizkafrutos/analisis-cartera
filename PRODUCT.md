@@ -35,7 +35,7 @@ ejecuta en local: los datos de iShares no pueden mostrarse en una web pública s
 
 ## Capabilities and Constraints
 - Streamlit (Python) como interfaz; el motor está separado y la interfaz solo presenta.
-- Universo cerrado de 15 ETFs de iShares; los bonos no se abren.
+- Universo cerrado de 18 ETFs (15 de iShares, uno de Xtrackers, Amundi y SPDR); los bonos no se abren.
 - Gráficos con plotly. Sin almacenamiento de carteras ni analítica.
 - Regulación (MiFID II): informativo; nunca recomienda comprar, vender ni productos concretos.
   Aviso de "no es asesoramiento" visible en cada sección de resultados.

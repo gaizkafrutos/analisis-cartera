@@ -32,6 +32,7 @@ los resultados reales.
 - [Réplica física, sintética y optimizada](#réplica-física-sintética-y-optimizada)
 - [Domicilio del fondo](#domicilio-del-fondo)
 - [ETF gemelo del mismo índice](#etf-gemelo-del-mismo-índice)
+- [Fecha de las posiciones](#fecha-de-las-posiciones)
 - [TER y coste anual](#ter-y-coste-anual)
 - [Tracking difference](#tracking-difference)
 - [Look-through](#look-through)
@@ -180,7 +181,7 @@ colateral, no el índice. Por eso esta herramienta no hace look-through de ETFs 
 **Trampas habituales:** en una réplica optimizada, la composición del fondo y la del índice no
 coinciden exactamente; el look-through usa la del fondo.
 
-**En el código:** `Fund.replication`, `Fund.methodology`. Hoy los 15 ETFs del universo son de
+**En el código:** `Fund.replication`, `Fund.methodology`. Hoy los 18 ETFs del universo son de
 réplica física.
 
 ---
@@ -220,6 +221,29 @@ públicos cuando los de tu gestora no se pueden mostrar.
 - Llega con retraso (unos dos meses, a fin de mes) y cada fuente asigna el país a su manera.
 - Copiar el mismo índice no significa rentar lo mismo: cambian la divisa, la fiscalidad de los
   dividendos y las comisiones. El gemelo sirve para la composición, no como sustituto.
+
+---
+
+## Fecha de las posiciones
+**En una frase:** el día al que corresponde la lista de empresas de un ETF; la composición de un
+fondo cambia con el tiempo, así que el análisis describe tus ETFs en esa fecha.
+
+**Cómo se calcula aquí:** se toma la fecha más antigua entre los ficheros de posiciones de los
+ETFs analizados y se cuentan los días hasta hoy. A partir de 31 días la app lo avisa debajo de
+la cartela, con qué hacer para actualizarla.
+
+**Ejemplo real:** en el modo SEC, las posiciones del gemelo del MSCI World son del 31-ago-2026;
+el 7-nov-2026 tenían 68 días y la app lo avisaba (la SEC las publica con unos dos meses de
+retraso).
+
+**Qué decisión ayuda a tomar:** si fiarse de las cifras tal cual o actualizar antes los datos.
+
+**Trampas habituales:**
+- Un índice cambia poco en un mes, pero los pesos se mueven con los precios: tras una subida
+  fuerte de una empresa, su peso real es mayor que el del fichero.
+- Los rebalanceos trimestrales del índice pueden añadir o quitar empresas entre dos ficheros.
+- El fichero de Xtrackers no trae fecha: se usa la del día de la descarga, que puede ir uno o dos
+  días por delante de las posiciones.
 
 ---
 

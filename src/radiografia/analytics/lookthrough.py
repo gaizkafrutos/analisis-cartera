@@ -146,6 +146,9 @@ class LookThroughResult(BaseModel):
     uncovered: tuple[UncoveredPosition, ...]
     proxies: tuple[ProxyNote, ...] = ()
     """Funds of this portfolio whose holdings come from a US twin ETF (public dataset)."""
+    asset_mix: dict[str, float] = {}
+    """Share of the recognised part of the portfolio by the funds' asset class (equity,
+    fixed_income, other), from the universe: it does not depend on having holdings files."""
 
 
 def company_key(name: str) -> str:
@@ -252,11 +255,14 @@ def compute_lookthrough(
     equity_weight = currency_weight = sector_weight = 0.0
     hedged_used = False
     dates: list[date] = []
+    mix: dict[str, float] = {}
 
     for position in portfolio.positions:
         fund = funds.get(position.isin) if position.isin else None
         if position.coverage is not CoverageStatus.COVERED:
             fund = None
+        if fund is not None:
+            mix[fund.asset_class.value] = mix.get(fund.asset_class.value, 0.0) + position.weight
         equity, currency, reason = _classify(fund, position.isin in available)
         if reason is not None:
             uncovered.append(
@@ -368,6 +374,7 @@ def compute_lookthrough(
         overlaps=_overlaps(equity_lines),
         uncovered=tuple(uncovered),
         proxies=tuple(dict.fromkeys(used_proxies)),
+        asset_mix={k: v / sum(mix.values()) for k, v in mix.items()} if mix else {},
     )
 
 

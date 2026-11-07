@@ -166,7 +166,7 @@ composición del ETF de EE. UU. que replica el mismo índice, tomada del formula
   para identificar); los ISIN de EE. UU. contienen el CUSIP, con licencia propia, así que no se
   muestran listados de ISIN en la interfaz.
 - **Qué sigue sin mostrarse en público:** ningún dato de las posiciones de iShares ni de otras
-  gestoras europeas. Las comisiones (TER) de los 15 ETFs son las ya transcritas de sus
+  gestoras europeas. Las comisiones (TER) de los ETFs del universo son las ya transcritas de sus
   documentos en `data/reference/`, con el aviso de procedencia del README.
 - **Dónde se usa** (decisión del autor al cerrar la v1, 7-nov-2026): la URL pública sigue
   sirviendo la demo sintética; el modo SEC (`app/public.py`) se ejecuta en local.

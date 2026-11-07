@@ -18,7 +18,7 @@ from radiografia.data import datasets
 from radiografia.data.datasets import DATASET_ENV, DEMO, REAL, DatasetKey
 from radiografia.data.snapshots import HOLDINGS_FILE, NAVS_FILE
 from radiografia.domain.metrics import MetricStatus
-from radiografia.reporting.texts import DEMO_NOTICE, DEMO_STAMP
+from radiografia.reporting.texts import DEMO_NOTICE, DEMO_STAMP, VERSUS_TITLE
 
 ROOT = Path(__file__).resolve().parents[2]
 DEMO_APP = str(ROOT / "app" / "demo.py")
@@ -136,7 +136,10 @@ def test_demo_app_runs_and_is_stamped():
     try:
         assert not app.exception
         assert any(DEMO_NOTICE in info.value for info in app.info)
-        assert DEMO_STAMP in " ".join(block.body for block in app.get("html"))
+        html_blocks = " ".join(block.body for block in app.get("html"))
+        assert DEMO_STAMP in html_blocks
+        assert VERSUS_TITLE in html_blocks  # side by side with the (fictitious) world market
+        assert not app.warning  # invented dates are never flagged as old
         captions = " ".join(caption.value for caption in app.caption)
         assert captions.count(DEMO_NOTICE) >= 2  # summary and details
         assert "sintéticos" in captions  # footer credits, no third-party data named

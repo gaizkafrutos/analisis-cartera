@@ -107,6 +107,23 @@ a { text-underline-offset: 0.18em; }
 }
 .survey-note { font-size: 0.86rem; color: var(--ink-2); }
 
+/* --- side by side: your portfolio (contour sienna) vs the world market (water blue) ------- */
+table.versus { width: 100%; border-collapse: collapse; margin: 0.4rem 0 0.3rem; font-size: 0.95rem; }
+table.versus caption {
+  text-align: left; font-family: var(--display); font-weight: 600; font-size: 1.35rem;
+  padding-bottom: 0.4rem;
+}
+table.versus th, table.versus td { padding: 0.45rem 0.4rem; border-bottom: 0.5px solid var(--rule); }
+table.versus thead th {
+  font-family: var(--label); font-weight: 600; font-size: 0.78rem; text-transform: uppercase;
+  letter-spacing: 0.06em; border-bottom: 1px solid var(--ink);
+}
+table.versus tbody th { text-align: left; font-weight: 400; color: var(--ink); }
+table.versus td { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; width: 7rem; }
+table.versus .mine { color: var(--contour); text-align: right; }
+table.versus .world { color: var(--water); text-align: right; }
+@media (max-width: 520px) { table.versus td { width: 4.5rem; } table.versus { font-size: 0.9rem; } }
+
 /* --- legend (plain-language summary) --------------------------------------------------------- */
 .st-key-legend { gap: 0; }
 .st-key-legend [data-testid="stMarkdown"], .st-key-legend [data-testid="stMarkdownContainer"] { margin-bottom: 0 !important; }

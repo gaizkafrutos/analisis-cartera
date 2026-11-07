@@ -458,8 +458,27 @@ def show_costs(report: service.AnalysisReport) -> None:
     explain([costs.weighted_ter, costs.annual_cost, costs.tracking_difference])
 
 
+def twin_sources(report: service.AnalysisReport) -> None:
+    """Public dataset: which US ETF lends its SEC holdings to each of the user's ETFs."""
+    proxies = report.lookthrough.proxies
+    if not proxies:
+        return
+    with st.expander(texts.TWINS_TITLE, icon=":material/compare_arrows:", expanded=True):
+        for proxy in proxies:
+            match = texts.TWIN_EXACT if proxy.exact_index else texts.TWIN_SIMILAR
+            line = (
+                f"**{short_fund_name(proxy.fund_name)}** ({proxy.ucits_index}) → "
+                f"{proxy.us_name} ({proxy.us_ticker}, {proxy.us_index}): {match}. "
+                f"Datos de la SEC a {format_date(proxy.holdings_as_of)}."
+            )
+            if proxy.note:
+                line += f" {proxy.note}"
+            st.markdown(f"- {line}")
+
+
 def show_exposure(report: service.AnalysisReport) -> None:
     lt, ref = report.lookthrough, report.reference
+    twin_sources(report)
     for breakdown, reference, name in (
         (lt.geography, ref.geography if ref else None, country_name),
         (lt.sector, ref.sector if ref else None, sector_name),

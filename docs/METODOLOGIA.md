@@ -246,6 +246,26 @@ Código: `radiografia.analytics.risk.compute_risk`, sobre la serie diaria en eur
   que publica iShares; ver `docs/VALIDACION.md`. La beta publicada por iShares es frente a su
   propio índice, del que no tenemos la serie: no se puede contrastar.
 
+## Versión pública: composición de los gemelos de EE. UU. (SEC)
+Código: `scripts/build_public.py` (descarga), `radiografia.data.sources.sec_nport` (lector),
+`data/reference/twins.csv` (parejas), `data/public/` (datos, en git) y `app/public.py`.
+
+- **Parejas:** cada ETF UCITS se empareja con el ETF de EE. UU. que replica el mismo índice.
+  Solo se usan los de índice idéntico; los de índice parecido quedan anotados pero sin usar
+  (error medido en `docs/VALIDACION.md`).
+- **Composición:** la del último formulario N-PORT público del gemelo (informe mensual, unos
+  60 días después del fin de mes). Peso de cada línea por su valor de mercado en dólares;
+  país = país del emisor (`invCountry`); divisa = la del valor; sin sector.
+- **Misma empresa en varios gemelos:** se unifican nombre y país por LEI (código mundial de
+  entidad), porque cada gestora escribe el nombre a su manera y el solapamiento lo necesita.
+- **Avisos:** cada resultado de exposición lleva el aviso de aproximación; la pestaña Exposición
+  lista qué gemelo y qué fecha usa cada ETF; la cartela da la fecha más antigua; el sector sale
+  como no disponible.
+- **Clase cubierta de renta fija sin posiciones:** cuenta para la divisa (la de cobertura) aunque
+  no haya fichero, porque esa regla no depende de las posiciones.
+- **Riesgo:** aún no en la versión pública. `twin_returns.csv` ya guarda las rentabilidades
+  mensuales de cada gemelo para la siguiente fase.
+
 ## Demo con datos sintéticos
 Código: `scripts/build_demo.py` (genera `data/demo/`), `radiografia.data.datasets` (elige los
 datos con la variable `RADIOGRAFIA_DATA`) y `app/demo.py` (la fija a `demo`).

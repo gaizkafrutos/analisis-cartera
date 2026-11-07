@@ -1,9 +1,13 @@
-"""Which data the app runs on: the real one (iShares + ECB, downloaded locally) or the demo.
+"""Which data the app runs on: real (iShares + ECB, local), public (SEC twins) or the demo.
 
-The demo is synthetic data built by scripts/build_demo.py and committed in data/demo/. It lets
-the app run in public without third-party data (iShares only allows personal use). The choice is
-made with the environment variable RADIOGRAFIA_DATA ("real" by default, "demo"); app/demo.py sets
-it for the public deployment.
+- real: iShares files downloaded by each user for personal use (git-ignored), exact.
+- public: the same UCITS universe, but each ETF's composition is that of the US ETF tracking the
+  same index, from SEC Form N-PORT (public data, committed in data/public/). Approximate and
+  labelled as such; lets the app show real data in public (iShares only allows personal use).
+- demo: synthetic data built by scripts/build_demo.py (data/demo/), for tests and as fallback.
+
+The choice is made with the environment variable RADIOGRAFIA_DATA ("real" by default); app/public.py
+and app/demo.py set it.
 
 User-facing labels for each dataset live in reporting/texts.py (DATASET_TEXTS).
 """
@@ -25,6 +29,7 @@ DATASET_ENV = "RADIOGRAFIA_DATA"
 class DatasetKey(StrEnum):
     REAL = "real"
     DEMO = "demo"
+    PUBLIC = "public"
 
 
 @dataclass(frozen=True)
@@ -57,7 +62,15 @@ DEMO = Dataset(
     benchmark_isin="ZZDEMO000086",  # "Demo Mercado Mundial" (fictitious), see build_demo.py
 )
 
-DATASETS = {dataset.key: dataset for dataset in (REAL, DEMO)}
+PUBLIC = Dataset(
+    key=DatasetKey.PUBLIC,
+    reference_dir=REFERENCE_DIR,  # the same UCITS universe as the real data
+    snapshots_dir=ROOT / "data" / "public" / "snapshots",
+    examples_dir=ROOT / "examples",
+    benchmark_isin="IE00B6R52259",  # MSCI ACWI, through its US twin (scripts/build_public.py)
+)
+
+DATASETS = {dataset.key: dataset for dataset in (REAL, DEMO, PUBLIC)}
 
 
 def current_dataset() -> Dataset:

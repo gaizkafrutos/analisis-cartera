@@ -31,6 +31,7 @@ los resultados reales.
 - [Cobertura de divisa (clase "Hedged")](#cobertura-de-divisa-clase-hedged)
 - [Réplica física, sintética y optimizada](#réplica-física-sintética-y-optimizada)
 - [Domicilio del fondo](#domicilio-del-fondo)
+- [ETF gemelo del mismo índice](#etf-gemelo-del-mismo-índice)
 - [TER y coste anual](#ter-y-coste-anual)
 - [Tracking difference](#tracking-difference)
 - [Look-through](#look-through)
@@ -196,6 +197,29 @@ ejemplo, la retención que sufre sobre los dividendos de empresas de EE. UU.) y 
 invierte en EE. UU.
 
 **En el código:** `Fund.domicile`.
+
+---
+
+## ETF gemelo del mismo índice
+**En una frase:** un ETF de otro mercado que copia exactamente el mismo índice que el tuyo y,
+por tanto, tiene casi las mismas empresas con casi los mismos pesos.
+
+**Cómo se usa aquí:** los ETFs de EE. UU. publican su composición completa en la SEC, y esos
+datos se pueden mostrar en público. La versión pública de la app toma la composición del gemelo
+estadounidense (por ejemplo, IVV para un S&P 500 UCITS) y la usa para tu ETF, diciéndolo.
+
+**Ejemplo real:** con el S&P 500, las 10 mayores empresas pesan un 39,2 % con los datos de
+iShares a 4-nov-2026 y un 37,8 % con el gemelo IVV (datos de la SEC a 30-jun-2026).
+
+**Qué decisión ayuda a tomar:** ninguna nueva; permite ver tu exposición con datos reales
+públicos cuando los de tu gestora no se pueden mostrar.
+
+**Trampas habituales:**
+- "El mismo índice" importa: un índice parecido (MSCI Japan frente a MSCI Japan IMI) puede
+  tener cinco veces menos empresas. Aquí solo se usan gemelos del índice exacto.
+- Llega con retraso (unos dos meses, a fin de mes) y cada fuente asigna el país a su manera.
+- Copiar el mismo índice no significa rentar lo mismo: cambian la divisa, la fiscalidad de los
+  dividendos y las comisiones. El gemelo sirve para la composición, no como sustituto.
 
 ---
 

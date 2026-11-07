@@ -14,9 +14,9 @@ cuánto pagas y cuánto se ha movido.
 *Demo con datos inventados, cartera de ejemplo "Muy concentrada". Ni las capturas ni el GIF
 muestran datos reales.*
 
-**Pruébala: [radiografia-cartera.streamlit.app](https://radiografia-cartera.streamlit.app)**, una demo con fondos, empresas y precios
-ficticios (ver [Datos y licencias](#datos-y-licencias)). Con ETFs reales, la app se ejecuta en
-local.
+**Pruébala: [radiografia-cartera.streamlit.app](https://radiografia-cartera.streamlit.app)**, con
+datos reales públicos de la SEC (ver [Datos y licencias](#datos-y-licencias)). Con los datos
+exactos de tu gestora, la app se ejecuta en local.
 
 ## El problema
 
@@ -138,8 +138,8 @@ Para ver la app completa sin descargar nada, con los datos inventados de la demo
 .venv\Scripts\python -m pytest -m validation
 ```
 
-El primero son los tests que corren en la CI (243, sin red ni datos externos; con la demo
-recorren todas las secciones de principio a fin). El segundo, la validación con datos reales
+El primero son los tests que corren en la CI (256, sin red ni datos externos; con la demo y
+los datos públicos recorren todas las secciones de principio a fin). El segundo, la validación con datos reales
 (67 más, con la copia local).
 
 ## Datos y licencias
@@ -150,8 +150,14 @@ recorren todas las secciones de principio a fin). El segundo, la validación con
 | BCE | Tipos de cambio y €STR | Reutilización libre citando la fuente |
 | Yahoo Finance | — | Descartado: sus términos prohíben el acceso automatizado y la redistribución |
 
-Por eso hay dos modos:
+Por eso hay tres modos:
 
+- **Versión pública con datos reales** (`app/public.py`): la composición de cada ETF es la del
+  ETF de EE. UU. que replica **el mismo índice** (por ejemplo, IVV para un S&P 500 UCITS),
+  publicada por la SEC (formulario N-PORT, información pública). Es una aproximación y la app lo
+  dice: qué gemelo usa cada ETF, con qué fecha (unos dos meses de retraso) y cuánto se desvía de
+  los datos exactos ([docs/VALIDACION.md](docs/VALIDACION.md): 0–2 puntos en el peso de las 10
+  mayores empresas). Cubre los 7 ETFs con gemelo exacto; sin sectores y, de momento, sin riesgo.
 - **Demo pública** ([radiografia-cartera.streamlit.app](https://radiografia-cartera.streamlit.app), `app/demo.py`): 8 fondos ficticios con unas 1.200 empresas inventadas,
   generados por [scripts/build_demo.py](scripts/build_demo.py) con una semilla fija y guardados
   en `data/demo/`. No usa ningún dato de terceros, y cada pantalla lo dice. Sirve para ver cómo

@@ -1,0 +1,8 @@
+isin,ucits_index,us_ticker,us_name,us_index,match,note,sec_series_id,series_name_in_filing,report_date,filing_url
+IE00B4L5Y983,MSCI World,URTH,iShares MSCI World ETF,MSCI World,exact,,S000035395,iShares MSCI World ETF,2026-08-31,https://www.sec.gov/Archives/edgar/data/930667/000100472626010092/primary_doc.xml
+IE00B441G979,MSCI World (clase cubierta en EUR),URTH,iShares MSCI World ETF,MSCI World,exact,La cobertura de divisa no cambia las empresas; la divisa sale de la regla de clases cubiertas.,S000035395,iShares MSCI World ETF,2026-08-31,https://www.sec.gov/Archives/edgar/data/930667/000100472626010092/primary_doc.xml
+IE00B6R52259,MSCI ACWI,ACWI,iShares MSCI ACWI ETF,MSCI ACWI,exact,,S000021461,iShares MSCI ACWI ETF,2026-07-31,https://www.sec.gov/Archives/edgar/data/1100663/000100472626008801/primary_doc.xml
+IE00B5BMR087,S&P 500,IVV,iShares Core S&P 500 ETF,S&P 500,exact,,S000004310,iShares Core S&P 500 ETF,2026-06-30,https://www.sec.gov/Archives/edgar/data/1100663/000207169126019760/primary_doc.xml
+IE00B53SZB19,Nasdaq-100,QQQ,Invesco QQQ Trust,Nasdaq-100,exact,,S000101292,"Invesco QQQ Trust, Series 1",2026-06-30,https://www.sec.gov/Archives/edgar/data/1067839/000106783926000030/primary_doc.xml
+IE00BKM4GZ66,MSCI Emerging Markets IMI,IEMG,iShares Core MSCI Emerging Markets ETF,MSCI Emerging Markets IMI,exact,,S000038923,iShares Core MSCI Emerging Markets ETF,2026-08-31,https://www.sec.gov/Archives/edgar/data/930667/000100472626010071/primary_doc.xml
+IE00B53L3W79,EURO STOXX 50,FEZ,SPDR EURO STOXX 50 ETF,EURO STOXX 50,exact,,S000006392,State Street(R) SPDR(R) EURO STOXX 50(R) ETF,2026-06-30,https://www.sec.gov/Archives/edgar/data/1168164/000141036826089491/primary_doc.xml

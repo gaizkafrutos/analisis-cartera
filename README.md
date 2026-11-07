@@ -130,7 +130,7 @@ Tests:
 .venv\Scripts\python -m pytest -m validation
 ```
 
-El primero son los tests de la CI (324, sin red ni datos externos; con la demo y los datos
+El primero son los tests de la CI (325, sin red ni datos externos; con la demo y los datos
 públicos de la SEC recorren todas las secciones de principio a fin). El segundo es la
 validación contra las gestoras (71 tests) y **necesita datos reales locales**: la copia de
 iShares que descargan los scripts y, para Xtrackers, Amundi y SPDR, un fichero de posiciones de
@@ -275,5 +275,5 @@ next to the world market. It does not give investment advice or recommendations.
   mode approximates each ETF with the SEC filings of the US ETF tracking the same index.
 - **Validation:** results are checked against what issuers publish (country and sector
   breakdowns, yearly returns, 3-year volatility), with tolerances derived from their rounding;
-  324 CI tests plus 71 validation tests that need local data.
+  325 CI tests plus 71 validation tests that need local data.
 - **Licence:** MIT for the code; third-party data are not covered.

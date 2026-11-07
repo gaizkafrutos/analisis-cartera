@@ -38,9 +38,16 @@ def _weights(breakdown):
     return {item.label: item.weight for item in breakdown.items}
 
 
-def test_dataset_selection(monkeypatch):
+def test_dataset_selection(monkeypatch, tmp_path):
     monkeypatch.delenv(DATASET_ENV, raising=False)
+    # without the variable: real data if there is a local snapshot, the demo if not
+    monkeypatch.setattr(datasets, "latest_snapshot_dir", lambda root: tmp_path)
     assert datasets.current_dataset() is REAL
+    assert datasets.selectable(REAL) == (REAL, DEMO, datasets.UPLOAD)
+    monkeypatch.setattr(datasets, "latest_snapshot_dir", lambda root: None)
+    assert datasets.current_dataset() is DEMO
+    assert datasets.selectable(DEMO) == (DEMO, datasets.UPLOAD)  # no SEC mode on the public URL
+    assert datasets.selectable(datasets.PUBLIC)[0] is datasets.PUBLIC
     monkeypatch.setenv(DATASET_ENV, " Demo ")
     assert datasets.current_dataset() is DEMO
     monkeypatch.setenv(DATASET_ENV, "otra")
@@ -95,6 +102,15 @@ def test_summary_says_the_data_are_fictitious(demo):
     assert "mercado mundial ficticio" in text
     assert "MSCI" not in text and "iShares" not in text
     assert "Liquidez" not in text  # the runner-up country is never the cash bucket
+
+
+def test_crises_are_named_as_fictitious(demo):
+    report = _report("concentrada")
+    labels = [episode.label for episode in report.risk.episodes]
+    assert labels == ["2020 (caída ficticia)", "2022 (caída ficticia)"]
+    text = " ".join(point.text for point in report.summary.points)
+    assert "caída ficticia" in text
+    assert "covid" not in text and "inflación" not in text
 
 
 def test_committed_files_match_the_generator(tmp_path):

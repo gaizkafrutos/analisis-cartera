@@ -83,7 +83,7 @@ def test_form_with_a_fund_outside_the_universe_is_partial(app):
 
 
 def test_without_snapshot_the_app_degrades_gracefully(app, monkeypatch):
-    monkeypatch.setattr(service, "get_snapshot", lambda: None)
+    monkeypatch.setattr(service, "get_snapshot", lambda source=None: None)
     app.run()
     assert not app.exception
     assert _metrics(app)["Coste anual estimado"] == "16,50 € / año"

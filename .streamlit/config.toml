@@ -1,9 +1,11 @@
-# Privacy: no usage statistics sent to Streamlit; small uploads only (a portfolio CSV is tiny).
+# Privacy: no usage statistics sent to Streamlit. Uploads up to 10 MB: a portfolio CSV is tiny,
+# the largest iShares holdings CSV (global bonds) is about 4 MB (same limit in
+# radiografia.input.holdings_file.MAX_FILE_BYTES).
 [browser]
 gatherUsageStats = false
 
 [server]
-maxUploadSize = 1
+maxUploadSize = 10
 # Fonts are served from app/static (no request to Google Fonts while the app runs).
 enableStaticServing = true
 

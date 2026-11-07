@@ -125,7 +125,8 @@ py -3.12 -m venv .venv
 (En Linux/macOS, `.venv/bin/` en lugar de `.venv\Scripts\`.)
 
 Los dos scripts descargan los datos de iShares y del BCE a `data/` (fuera del repositorio). Sin
-ellos la app funciona igual, pero solo con los costes: el resto aparece como "no disponible".
+ellos, la app arranca en la demo; en «¿Con qué datos?» se puede elegir «Tus ficheros de iShares»
+y subir el CSV de posiciones de cada ETF, que se lee en memoria y no se guarda.
 
 Para ver la app completa sin descargar nada, con los datos inventados de la demo:
 
@@ -138,9 +139,9 @@ Para ver la app completa sin descargar nada, con los datos inventados de la demo
 .venv\Scripts\python -m pytest -m validation
 ```
 
-El primero son los tests que corren en la CI (256, sin red ni datos externos; con la demo y
-los datos públicos recorren todas las secciones de principio a fin). El segundo, la validación con datos reales
-(67 más, con la copia local).
+El primero son los tests que corren en la CI (281, sin red ni datos externos; con la demo y
+los datos públicos recorren todas las secciones de principio a fin). El segundo, la validación
+con datos reales (68 más, con la copia local).
 
 ## Datos y licencias
 
@@ -150,7 +151,7 @@ los datos públicos recorren todas las secciones de principio a fin). El segundo
 | BCE | Tipos de cambio y €STR | Reutilización libre citando la fuente |
 | Yahoo Finance | — | Descartado: sus términos prohíben el acceso automatizado y la redistribución |
 
-Por eso hay tres modos:
+Por eso hay cuatro modos:
 
 - **Modo SEC, con datos reales públicos** (`app/public.py`, en local): la composición de cada ETF es la del
   ETF de EE. UU. que replica **el mismo índice** (por ejemplo, IVV para un S&P 500 UCITS),
@@ -162,6 +163,9 @@ Por eso hay tres modos:
   generados por [scripts/build_demo.py](scripts/build_demo.py) con una semilla fija y guardados
   en `data/demo/`. No usa ningún dato de terceros, y cada pantalla lo dice. Sirve para ver cómo
   funciona la herramienta, no para sacar conclusiones: las cifras no son reales.
+- **Tus ficheros de iShares** (en la demo pública y en local): cada usuario descarga de la web
+  de iShares el CSV de posiciones de sus ETFs y lo sube; se lee en memoria y no se guarda.
+  Calcula costes, exposición, concentración y solapamiento; el riesgo no, porque no hay precios.
 - **Local con datos reales** (`app/streamlit_app.py`): los datos de iShares no están en el
   repositorio; cada usuario los descarga para su uso personal con los scripts de arriba.
 

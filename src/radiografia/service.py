@@ -4,26 +4,39 @@
     if result.ok:
         report = analyze(result.portfolio)
 
-Nothing here stores or logs the user's portfolio (CLAUDE.md, "Privacidad").
+Every function takes an optional `source` (the dataset chosen in the session); without it, the
+default of `datasets.current_dataset()`. With the user's own holdings files (source UPLOAD):
+
+    upload = read_holdings_file(name, content)               # per file
+    uploaded = snapshot_from_uploads({isin: upload, ...})    # the user confirms each fund
+    report = analyze(portfolio, snapshot=uploaded.snapshot, source=UPLOAD)
+
+Nothing here stores or logs the user's portfolio or files (CLAUDE.md, "Privacidad").
 """
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from enum import StrEnum
 from functools import lru_cache
 
+import pandas as pd
 from pydantic import BaseModel, ConfigDict
 
 from radiografia.analytics.costs import CostsResult, compute_costs, tracking_differences
 from radiografia.analytics.lookthrough import LookThroughResult, ProxyNote, compute_lookthrough
 from radiografia.analytics.returns import ReturnsResult, compute_returns, fund_index_eur
 from radiografia.analytics.risk import RiskResult, compute_risk
-from radiografia.data.datasets import DATASETS, Dataset, DatasetKey, current_dataset
+from radiografia.data.datasets import DATASETS, Dataset, DatasetKey, current_dataset, selectable
 from radiografia.data.snapshots import Snapshot, latest_snapshot_dir, read_snapshot
+from radiografia.data.sources.ishares_holdings import BREAKDOWN_COLUMNS
 from radiografia.data.universe import Universe, load_universe
 from radiografia.domain.fund import AssetClass
 from radiografia.domain.portfolio import Portfolio, PortfolioInputResult, RawPosition
 from radiografia.input import build_portfolio, portfolio_from_csv
+from radiografia.input.holdings_file import HoldingsUpload
+from radiografia.input.holdings_file import read_holdings_file as _read_holdings_file
 from radiografia.reporting.summary import Summary, build_summary
 from radiografia.reporting.texts import DATASET_TEXTS
 
@@ -100,29 +113,35 @@ DEMO_EXAMPLES = (
 )
 
 
-def dataset() -> Dataset:
-    """Data the app runs on (real or demo), chosen with RADIOGRAFIA_DATA."""
-    return current_dataset()
+def dataset(source: Dataset | None = None) -> Dataset:
+    """Data the app runs on: `source` if given, else RADIOGRAFIA_DATA or the automatic default
+    (real with a local snapshot, the demo without one)."""
+    return source or current_dataset()
 
 
-def examples() -> tuple[ExamplePortfolio, ...]:
-    return DEMO_EXAMPLES if dataset().is_demo else EXAMPLES
+def selectable_datasets() -> tuple[Dataset, ...]:
+    """Datasets a session can pick, the default first (see datasets.selectable)."""
+    return selectable(current_dataset())
 
 
-def example_portfolio_csv(key: str = "global") -> bytes:
+def examples(source: Dataset | None = None) -> tuple[ExamplePortfolio, ...]:
+    return DEMO_EXAMPLES if dataset(source).is_demo else EXAMPLES
+
+
+def example_portfolio_csv(key: str = "global", source: Dataset | None = None) -> bytes:
     """Example portfolio loadable with one click (Spanish Excel CSV format)."""
-    example = next(e for e in examples() if e.key == key)
-    return (dataset().examples_dir / example.filename).read_bytes()
+    example = next(e for e in examples(source) if e.key == key)
+    return (dataset(source).examples_dir / example.filename).read_bytes()
 
 
-def get_universe() -> Universe:
-    """Reference universe of the current dataset (the same for every user)."""
-    return _universe(dataset().key)
+def get_universe(source: Dataset | None = None) -> Universe:
+    """Reference universe of the dataset (the same for every user)."""
+    return _universe(dataset(source).key)
 
 
-def get_snapshot() -> Snapshot | None:
-    """Latest snapshot of the current dataset, or None (sections then show as not available)."""
-    return _snapshot(dataset().key)
+def get_snapshot(source: Dataset | None = None) -> Snapshot | None:
+    """Latest stored snapshot of the dataset, or None (sections then show as not available)."""
+    return _snapshot(dataset(source).key)
 
 
 @lru_cache(maxsize=len(DATASETS))
@@ -132,7 +151,8 @@ def _universe(key: DatasetKey) -> Universe:
 
 @lru_cache(maxsize=len(DATASETS))
 def _snapshot(key: DatasetKey) -> Snapshot | None:
-    directory = latest_snapshot_dir(DATASETS[key].snapshots_dir)
+    root = DATASETS[key].snapshots_dir
+    directory = latest_snapshot_dir(root) if root is not None else None
     return read_snapshot(directory) if directory is not None else None
 
 
@@ -167,20 +187,115 @@ def proxy_notes(snapshot: Snapshot, universe: Universe) -> dict[str, ProxyNote]:
     return notes
 
 
+# --- the user's own holdings files ("sube tu fichero") --------------------------------------
+
+
+class UploadProblem(StrEnum):
+    UNKNOWN_FUND = "unknown_fund"
+    """The chosen ISIN is not in the universe (its TER and asset class are unknown)."""
+    ASSET_CLASS_MISMATCH = "asset_class_mismatch"
+    """Mostly equity lines for a bond fund or the other way round: probably the wrong fund."""
+
+
+@dataclass(frozen=True)
+class UploadedData:
+    """Holdings of the user's files as an in-memory snapshot (never written anywhere)."""
+
+    snapshot: Snapshot | None
+    used: tuple[str, ...]
+    """ISINs whose file is used."""
+    problems: tuple[tuple[str, UploadProblem], ...]
+    """(ISIN, problem) for each file left out."""
+
+
+def _upload_universe(universe: Universe | None) -> Universe:
+    return universe or get_universe(DATASETS[DatasetKey.UPLOAD])
+
+
+def read_holdings_file(
+    filename: str, content: bytes, universe: Universe | None = None
+) -> HoldingsUpload:
+    """Read one uploaded holdings file (only iShares holdings CSVs today). Never raises."""
+    return _read_holdings_file(filename, content, _upload_universe(universe).index())
+
+
+def snapshot_from_uploads(
+    files: Mapping[str, HoldingsUpload], universe: Universe | None = None
+) -> UploadedData:
+    """`files`: per fund ISIN (confirmed by the user), its uploaded file. Files that are not
+    usable for that fund are left out and reported, never guessed around."""
+    universe = _upload_universe(universe)
+    lines, manifest, used, problems = [], [], [], []
+    for isin, upload in files.items():
+        if not upload.ok:
+            continue
+        fund = universe.funds.get(isin)
+        if fund is None:
+            problems.append((isin, UploadProblem.UNKNOWN_FUND))
+            continue
+        equity_fund = fund.asset_class is AssetClass.EQUITY
+        if upload.equity_share is not None and (upload.equity_share >= 0.5) != equity_fund:
+            problems.append((isin, UploadProblem.ASSET_CLASS_MISMATCH))
+            continue
+        lines.append(upload.holdings.assign(isin=isin))
+        manifest.append(
+            {
+                "isin": isin,
+                "holdings_as_of": pd.Timestamp(upload.as_of),
+                "lines": len(upload.holdings),
+            }
+        )
+        used.append(isin)
+    snapshot = None
+    if lines:
+        snapshot = Snapshot(
+            directory=None,
+            holdings=pd.concat(lines, ignore_index=True),
+            breakdowns=pd.DataFrame(columns=[*BREAKDOWN_COLUMNS, "isin"]),
+            manifest=pd.DataFrame(manifest),
+        )
+    return UploadedData(snapshot=snapshot, used=tuple(used), problems=tuple(problems))
+
+
+def missing_holdings(
+    portfolio: Portfolio, uploaded: UploadedData, universe: Universe | None = None
+) -> tuple[str, ...]:
+    """Covered equity funds of the portfolio without a usable uploaded file (their ISINs)."""
+    funds = _upload_universe(universe).funds
+    return tuple(
+        p.isin
+        for p in portfolio.positions
+        if p.isin in funds
+        and funds[p.isin].asset_class is AssetClass.EQUITY
+        and p.isin not in uploaded.used
+    )
+
+
 _LATEST = object()
+
+
+def _with_episode_labels(risk: RiskResult, labels: Mapping[str, str] | None) -> RiskResult:
+    """The demo's crises are scripted: name them as such instead of after the real ones."""
+    if not labels:
+        return risk
+    episodes = tuple(
+        e.model_copy(update={"label": labels.get(e.key, e.label)}) for e in risk.episodes
+    )
+    return risk.model_copy(update={"episodes": episodes})
 
 
 def analyze(
     portfolio: Portfolio,
     universe: Universe | None = None,
     snapshot: Snapshot | object | None = _LATEST,
+    source: Dataset | None = None,
 ) -> AnalysisReport:
-    """Run every metric. `snapshot` defaults to the latest local one; pass None to analyse
-    without holdings (look-through then reports not available)."""
-    data = dataset()
+    """Run every metric. `snapshot` defaults to the latest stored one of the dataset; pass None
+    to analyse without holdings (look-through then reports not available)."""
+    data = dataset(source)
     benchmark_isin = data.benchmark_isin
-    universe = universe or get_universe()
-    snapshot = get_snapshot() if snapshot is _LATEST else snapshot
+    universe = universe or get_universe(data)
+    snapshot = get_snapshot(data) if snapshot is _LATEST else snapshot
     holdings, as_of, proxies = None, {}, {}
     navs = performance = distributions = fx = estr = None
     if snapshot is not None:
@@ -214,6 +329,7 @@ def analyze(
         portfolio, universe.funds, tracking_differences(performance, universe.funds)
     )
     lookthrough = compute_lookthrough(portfolio, universe.funds, holdings, as_of, proxies)
+    risk = _with_episode_labels(risk, DATASET_TEXTS[data.key].episode_labels)
     reference = None
     if holdings is not None and benchmark is not None:
         benchmark_portfolio = build_portfolio(

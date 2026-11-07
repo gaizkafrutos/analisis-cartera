@@ -31,7 +31,8 @@ PROXIES_FILE = "proxies.csv"
 
 @dataclass(frozen=True)
 class Snapshot:
-    directory: Path
+    directory: Path | None
+    """None for a snapshot built in memory from files the user uploaded."""
     holdings: pd.DataFrame
     breakdowns: pd.DataFrame
     manifest: pd.DataFrame

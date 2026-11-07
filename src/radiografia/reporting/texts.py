@@ -6,6 +6,7 @@ buying, selling or switching, and never name alternative products.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from radiografia.analytics import costs, lookthrough, returns, risk
@@ -48,7 +49,11 @@ class DatasetTexts:
     credits: str
     data_date_note: str
     notice: str | None = None
-    """Shown next to every disclaimer when the data are not real."""
+    """Shown next to every disclaimer when the data are not real or not the stored ones."""
+    episode_labels: Mapping[str, str] | None = None
+    """Names of the crisis episodes when they are not the real ones (the demo's are scripted)."""
+    choice: str = ""
+    """Name of the dataset in the app's data selector."""
 
     @property
     def disclaimer(self) -> str:
@@ -63,8 +68,8 @@ DEMO_INPUT_HINT = (
 )
 DEMO_NOTICE = (
     "Esta es una demo con datos inventados: los fondos, las empresas y los precios son ficticios "
-    "y no corresponden a ningún producto real. Para analizar ETFs reales, la app se ejecuta en "
-    "local con los datos que cada usuario descarga (ver README)."
+    "y no corresponden a ningún producto real. Para analizar tus ETFs reales de iShares, elige "
+    "«Tus ficheros de iShares» y sube los ficheros que descargas de su web."
 )
 
 PUBLIC_NOTICE = (
@@ -72,6 +77,31 @@ PUBLIC_NOTICE = (
     "el mismo índice (datos reales de la SEC, con unos meses de retraso). Para los datos exactos "
     "de tu ETF, la app se ejecuta en local (ver README)."
 )
+UPLOAD_NOTICE = (
+    "Tus ficheros: la composición de cada ETF sale de los ficheros de posiciones que has subido. "
+    "Se leen en memoria y no se guardan. Sin precios históricos, la parte de riesgo no está "
+    "disponible en este modo."
+)
+DATA_CHOICE_LABEL = "¿Con qué datos?"
+DATA_CHOICE_HELP = (
+    "La demo usa fondos y empresas inventados. Con tus ficheros, la app analiza la composición "
+    "real de tus ETFs de iShares a partir de lo que descargas de su web."
+)
+UPLOAD_TITLE = "Ficheros de posiciones de tus ETFs"
+UPLOAD_HELP = (
+    "Para cada ETF de iShares de tu cartera, abre su ficha en la web de iShares de Reino Unido "
+    "(en inglés) y, en la sección «Holdings», pulsa «Detailed Holdings and Analytics»: se "
+    "descarga un CSV (por ejemplo, SWDA_holdings.csv). Súbelo aquí sin modificarlo. Los ficheros "
+    "se leen en memoria y no se guardan."
+)
+UPLOAD_FUND_LABEL = "¿De qué ETF es?"
+UPLOAD_NO_FILES = (
+    "Aún no has subido ningún fichero: los costes ya se calculan, pero la composición (países, "
+    "divisas, empresas y solapamiento) necesita el fichero de cada ETF de renta variable."
+)
+UPLOAD_MISSING = "Sin fichero (no entran en la composición): {funds}."
+UPLOAD_READ = "{lines} líneas, posiciones a {date}"
+UPLOAD_DUPLICATE = "Hay dos ficheros para {fund}: se usa el último."
 TWINS_TITLE = "De dónde sale la composición de cada ETF"
 TWIN_EXACT = "mismo índice"
 TWIN_SIMILAR = "índice parecido"
@@ -88,6 +118,7 @@ DATASET_TEXTS = {
             "BCE para tipos de cambio y €STR. Tipografía Barlow (SIL Open Font License)."
         ),
         data_date_note="Datos de la gestora consultados el {date}.",
+        choice="Tus datos locales (iShares)",
     ),
     DatasetKey.DEMO: DatasetTexts(
         reference="Demo Mercado Mundial (fondo ficticio)",
@@ -100,6 +131,8 @@ DATASET_TEXTS = {
         ),
         data_date_note="Datos ficticios con fecha {date}.",
         notice=DEMO_NOTICE,
+        episode_labels={"2020": "2020 (caída ficticia)", "2022": "2022 (caída ficticia)"},
+        choice="Demo con datos ficticios",
     ),
     DatasetKey.PUBLIC: DatasetTexts(
         reference="Mercado mundial de acciones (MSCI ACWI, con la composición del ETF de EE. UU. "
@@ -119,6 +152,23 @@ DATASET_TEXTS = {
         ),
         data_date_note="Composición publicada en la SEC con fecha {date}.",
         notice=PUBLIC_NOTICE,
+        choice="Modo SEC (gemelos de EE. UU.)",
+    ),
+    DatasetKey.UPLOAD: DatasetTexts(
+        reference="Mercado mundial de acciones (iShares MSCI ACWI), solo si subes también su "
+        "fichero",
+        reference_in_summary="el índice mundial MSCI ACWI",
+        reference_mark="La marca azul es el mercado mundial de acciones (iShares MSCI ACWI), "
+        "abierto igual.",
+        sources="Tus ficheros de posiciones de iShares (BlackRock); comisiones de sus documentos",
+        credits=(
+            "Datos: los ficheros de posiciones de iShares (BlackRock) que has subido, para la "
+            "composición; comisiones transcritas de los documentos de la gestora. Tipografía "
+            "Barlow (SIL Open Font License)."
+        ),
+        data_date_note="Posiciones de tus ficheros, con fecha {date}.",
+        notice=UPLOAD_NOTICE,
+        choice="Tus ficheros de iShares",
     ),
 }
 

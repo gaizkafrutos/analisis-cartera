@@ -98,6 +98,11 @@ def test_negligible_euro_share_is_not_shown_as_minus_zero():
     assert "Prácticamente nada está en euros" in texts[sm.Topic.CURRENCY]
 
 
+def test_country_ending_in_a_period_is_not_followed_by_another():
+    text = _texts(_summary((US, 10000)))[sm.Topic.GEOGRAPHY]
+    assert "EE. UU.." not in text and text.endswith(".")
+
+
 def test_asset_mix_is_relative_to_the_analysed_part():
     texts = _texts(_summary((US, 4000), (BONDS, 6000)))
     assert "un 40 % es renta variable" in texts[sm.Topic.ASSET_MIX]
